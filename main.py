@@ -29,6 +29,19 @@ from src.prediction_module import run_prediction_analysis
 from src.dashboard_interactive import run_dashboard
 from src.report_generator import run_report_generation
 
+# Import new advanced modules
+from src.advanced_coverage_visualization import (
+    create_3d_coverage_map, simulate_coverage_in_climate_conditions,
+    analyze_topographic_obstructions
+)
+from src.coverage_quality_analysis import (
+    identify_critical_areas, analyze_coverage_redundancy,
+    calculate_coverage_efficiency
+)
+from src.coverage_prediction import (
+    simulate_coverage_optimization, predict_expansion_areas
+)
+
 # --- Configuration --- 
 # Define paths here. Use relative paths for better portability.
 INPUT_CSV_PATH = "data/csv_licenciamento_bruto.csv"  # Replace with the real file path
@@ -249,93 +262,141 @@ def step_3_coverage_processing(df):
     gdf_sectors = gpd.GeoDataFrame(
         gdf_rbs[['Operator', 'EIRP_dBm', 'Coverage_Radius_km', 'Coverage_Area_km2', 'area_type']],
         geometry=gdf_rbs['sector_geometry'],
-        crs="EPSG:4326"
-    ).dropna(subset=['geometry'])
+        crs=gdf_rbs.crs
+    )
     
-    print(f"Processing completed: {len(gdf_rbs)} RBS and {len(gdf_sectors)} coverage sectors.")
+    print(f"Processed {len(gdf_rbs)} RBS with coverage information")
     
     return gdf_rbs, gdf_sectors
 
-# --- Step 4: Advanced Visualizations --- 
 def step_4_advanced_visualizations(gdf_rbs, gdf_sectors):
-    if gdf_rbs is None or gdf_rbs.empty:
+    if gdf_rbs is None or gdf_sectors is None:
         print("No data for advanced visualizations. Skipping step.")
-        return
+        return gdf_rbs, gdf_sectors
     
     print("\n" + "="*80)
-    print("STEP 4: ADVANCED VISUALIZATIONS")
+    print("STEP 4: ADVANCED COVERAGE VISUALIZATIONS")
     print("="*80 + "\n")
     
-    # Create positioning map of RBS
-    print("\n4.1. RBS Positioning Map")
-    positioning_map = os.path.join(RESULTS_DIR, "positioning_map_rbs.png")
-    create_positioning_map(gdf_rbs, positioning_map)
+    # Create a directory for visualization results
+    vis_dir = os.path.join(RESULTS_DIR, "visualizations")
+    if not os.path.exists(vis_dir):
+        os.makedirs(vis_dir)
     
-    # Create coverage map by operator
-    if gdf_sectors is not None and not gdf_sectors.empty:
-        print("\n4.2. Coverage Map by Operator")
-        coverage_map = os.path.join(RESULTS_DIR, "coverage_map_by_operator.png")
-        create_coverage_map_by_operator(gdf_rbs, gdf_sectors, coverage_map)
-        
-        print("\n4.3. Overlap Map")
-        overlap_map = os.path.join(RESULTS_DIR, "overlap_map.png")
-        create_overlap_map(gdf_rbs, gdf_sectors, overlap_map)
+    # Create a positioning map
+    print("Creating positioning map...")
+    create_positioning_map(
+        gdf_rbs, 
+        os.path.join(vis_dir, "positioning_map.png")
+    )
     
-    # Create heat map of power
-    print("\n4.4. Heat Map of EIRP Power")
-    heat_map = os.path.join(RESULTS_DIR, "heat_map_power.png")
-    create_heat_map_power(gdf_rbs, heat_map)
+    # Create a coverage map by operator
+    print("Creating coverage map by operator...")
+    create_coverage_map_by_operator(
+        gdf_rbs, 
+        gdf_sectors,
+        os.path.join(vis_dir, "coverage_by_operator.png")
+    )
     
-    # Create interactive Folium map
-    print("\n4.5. Interactive Folium Map")
-    folium_map = os.path.join(RESULTS_DIR, "interactive_rbs_map.html")
-    create_folium_map(gdf_rbs, folium_map)
+    # Create an overlap map
+    print("Creating coverage overlap map...")
+    create_overlap_map(
+        gdf_rbs,
+        gdf_sectors,
+        os.path.join(vis_dir, "coverage_overlap.png")
+    )
     
-    print("\nAll visualizations generated successfully.")
+    # Create a heat map of power
+    print("Creating power heat map...")
+    create_heat_map_power(
+        gdf_rbs,
+        os.path.join(vis_dir, "power_heat_map.png")
+    )
+    
+    # Create an interactive Folium map
+    print("Creating interactive map...")
+    create_folium_map(
+        gdf_rbs,
+        os.path.join(vis_dir, "interactive_map.html")
+    )
+    
+    # Add new advanced visualizations
+    print("\nRunning advanced coverage visualizations...")
+    
+    # 3D Coverage Map
+    create_3d_coverage_map(
+        gdf_rbs,
+        os.path.join(vis_dir, "3d_coverage_map.png"),
+        resolution=100
+    )
+    
+    # Simulate coverage in different climate conditions
+    simulate_coverage_in_climate_conditions(
+        gdf_rbs,
+        gdf_sectors,
+        os.path.join(vis_dir, "climate_coverage_simulation.png"),
+        conditions=['clear', 'rain', 'heavy_rain', 'fog']
+    )
+    
+    # Analyze topographic obstructions
+    # Note: This requires a DEM file, we'll use a mock one for demonstration
+    dem_path = os.path.join("data", "dem.tif")
+    analyze_topographic_obstructions(
+        gdf_rbs,
+        dem_path,
+        os.path.join(vis_dir, "topographic_obstruction_analysis.png")
+    )
+    
+    return gdf_rbs, gdf_sectors
 
-# --- Step 5: Graph Analysis --- 
 def step_5_graph_analysis(gdf_rbs):
     if gdf_rbs is None or gdf_rbs.empty:
         print("No data for graph analysis. Skipping step.")
-        return
+        return None
     
     print("\n" + "="*80)
-    print("STEP 5: GRAPH ANALYSIS AND NETWORKS")
+    print("STEP 5: GRAPH ANALYSIS OF RBS NETWORK")
     print("="*80 + "\n")
     
-    # Create connectivity graph
-    print("\n5.1. Creating connectivity graph...")
-    graph = create_rbs_graph(gdf_rbs, connection_radius=2.0, weighted=True)
+    # Create a directory for graph analysis results
+    graph_dir = os.path.join(RESULTS_DIR, "graph_analysis")
+    if not os.path.exists(graph_dir):
+        os.makedirs(graph_dir)
     
-    # Calculate metrics
-    print("\n5.2. Calculating graph metrics...")
-    metrics = calculate_graph_metrics(graph)
+    # Create a graph from RBS points
+    print("Creating RBS graph...")
+    G = create_rbs_graph(gdf_rbs)
     
-    # Print metrics
-    print("\nConnectivity Graph Metrics:")
-    print("-" * 40)
-    for metric, value in metrics.items():
-        print(f"{metric}: {value}")
+    # Calculate graph metrics
+    print("Calculating graph metrics...")
+    G, metrics = calculate_graph_metrics(G)
     
-    # Create visualization
-    print("\n5.3. Creating graph visualization...")
-    graph_viz_path = os.path.join(RESULTS_DIR, "rbs_connectivity_graph.png")
-    visualize_graph(graph, graph_viz_path, title="RBS Connectivity Graph", by_operator=True)
+    # Create graph visualizations
+    print("Creating graph visualizations...")
+    visualize_graph(
+        G, 
+        gdf_rbs,
+        metrics,
+        os.path.join(graph_dir, "rbs_graph.png")
+    )
     
-    # Create Voronoi diagram
-    print("\n5.4. Creating Voronoi diagram...")
-    voronoi_path = os.path.join(RESULTS_DIR, "rbs_voronoi_diagram.png")
-    voronoi_graph = create_voronoi_rbs_graph(gdf_rbs, voronoi_path)
+    # Create Voronoi graph
+    print("Creating Voronoi analysis...")
+    voronoi_gdf = create_voronoi_rbs_graph(
+        gdf_rbs,
+        os.path.join(graph_dir, "voronoi_graph.png")
+    )
     
-    # Create PyG Data object if PyTorch is available
-    print("\n5.5. Converting to PyTorch Geometric format...")
-    pyg_data = convert_to_pyg(graph)
-    if pyg_data is not None:
-        print(f"PyG data created with {pyg_data.num_nodes} nodes and {pyg_data.num_edges} edges.")
+    # Convert to PyG format if available
+    try:
+        print("Converting to PyG format for Machine Learning...")
+        pyg_graph = convert_to_pyg(G, gdf_rbs)
+        print("PyG conversion successful.")
+    except Exception as e:
+        print(f"PyG conversion error: {e}")
     
-    print("\nAll graph analysis completed successfully.")
+    return G
 
-# --- Step 6: Technology and Frequency Analysis --- 
 def step_6_tech_frequency_analysis(gdf_rbs):
     if gdf_rbs is None or gdf_rbs.empty:
         print("No data for technology and frequency analysis. Skipping step.")
@@ -345,29 +406,27 @@ def step_6_tech_frequency_analysis(gdf_rbs):
     print("STEP 6: TECHNOLOGY AND FREQUENCY ANALYSIS")
     print("="*80 + "\n")
     
-    try:
-        run_tech_frequency_analysis(gdf_rbs, RESULTS_DIR)
-        print("\nTechnology and frequency analysis completed successfully.")
-    except Exception as e:
-        print(f"Error during technology and frequency analysis: {e}")
+    # Create directory for tech analysis results
+    tech_dir = os.path.join(RESULTS_DIR, "tech_analysis")
+    
+    # Run comprehensive technology and frequency analysis
+    run_tech_frequency_analysis(gdf_rbs, tech_dir)
 
-# --- Step 7: Advanced Temporal Analysis --- 
 def step_7_temporal_analysis(gdf_rbs):
     if gdf_rbs is None or gdf_rbs.empty:
-        print("No data for advanced temporal analysis. Skipping step.")
+        print("No data for temporal analysis. Skipping step.")
         return
     
     print("\n" + "="*80)
     print("STEP 7: ADVANCED TEMPORAL ANALYSIS")
     print("="*80 + "\n")
     
-    try:
-        run_temporal_analysis(gdf_rbs, RESULTS_DIR)
-        print("\nAdvanced temporal analysis completed successfully.")
-    except Exception as e:
-        print(f"Error during advanced temporal analysis: {e}")
+    # Create directory for temporal analysis results
+    temporal_dir = os.path.join(RESULTS_DIR, "temporal_analysis")
+    
+    # Run comprehensive temporal analysis
+    run_temporal_analysis(gdf_rbs, temporal_dir)
 
-# --- Step 8: Advanced Integrations --- 
 def step_8_advanced_integrations(gdf_rbs):
     if gdf_rbs is None or gdf_rbs.empty:
         print("No data for advanced integrations. Skipping step.")
@@ -377,48 +436,147 @@ def step_8_advanced_integrations(gdf_rbs):
     print("STEP 8: ADVANCED INTEGRATIONS")
     print("="*80 + "\n")
     
-    # Correlation Analysis
-    print("\n8.1. Correlation Analysis")
-    try:
-        run_correlation_analysis(gdf_rbs, RESULTS_DIR)
-        print("Correlation analysis completed successfully.")
-    except Exception as e:
-        print(f"Error during correlation analysis: {e}")
+    # Create directories for analysis results
+    correlation_dir = os.path.join(RESULTS_DIR, "correlation_analysis")
+    spatial_dir = os.path.join(RESULTS_DIR, "spatial_analysis")
+    integration_dir = os.path.join(RESULTS_DIR, "integration_analysis")
+    prediction_dir = os.path.join(RESULTS_DIR, "prediction_analysis")
+    dashboard_dir = os.path.join(RESULTS_DIR, "dashboard")
+    reports_dir = os.path.join(RESULTS_DIR, "reports")
     
-    # Spatial Analysis
-    print("\n8.2. Spatial Analysis")
-    try:
-        run_spatial_analysis(gdf_rbs, RESULTS_DIR)
-        print("Spatial analysis completed successfully.")
-    except Exception as e:
-        print(f"Error during spatial analysis: {e}")
+    for directory in [correlation_dir, spatial_dir, integration_dir, prediction_dir, dashboard_dir, reports_dir]:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
     
-    # Integration Analysis
-    print("\n8.3. Integration Analysis")
-    try:
-        run_integration_analysis(gdf_rbs, RESULTS_DIR)
-        print("Integration analysis completed successfully.")
-    except Exception as e:
-        print(f"Error during integration analysis: {e}")
+    # Run correlation analysis
+    print("Running correlation analysis...")
+    run_correlation_analysis(gdf_rbs, correlation_dir)
     
-    # Prediction Analysis
-    print("\n8.4. Prediction Analysis")
-    try:
-        run_prediction_analysis(gdf_rbs, RESULTS_DIR)
-        print("Prediction analysis completed successfully.")
-    except Exception as e:
-        print(f"Error during prediction analysis: {e}")
+    # Run spatial analysis
+    print("Running spatial analysis...")
+    run_spatial_analysis(gdf_rbs, spatial_dir)
     
-    print("\nAll advanced integration analyses completed.")
+    # Run integration analysis (combining temporal, spatial, and tech)
+    print("Running integration analysis...")
+    run_integration_analysis(gdf_rbs, integration_dir)
+    
+    # Run prediction analysis
+    print("Running prediction analysis...")
+    run_prediction_analysis(gdf_rbs, prediction_dir)
+    
+    # Run interactive dashboard
+    print("Setting up interactive dashboard...")
+    try:
+        run_dashboard(gdf_rbs, dashboard_dir)
+    except Exception as e:
+        print(f"Error creating dashboard: {e}")
+        print("Dashboard creation skipped. You may need to install additional dependencies.")
+    
+    # Generate comprehensive reports
+    print("Generating reports...")
+    try:
+        run_report_generation(gdf_rbs, reports_dir)
+    except Exception as e:
+        print(f"Error generating reports: {e}")
+        print("Report generation skipped. You may need to install additional dependencies.")
 
-# --- Função Principal --- 
-def main():
-    print("="*80)
-    print("RADIO BASE STATION (RBS) ANALYSIS SYSTEM")
-    print("="*80)
-    print("\nThis program analyzes RBS data to extract insights about signal coverage.")
+# --- Step 9: Coverage Quality Analysis ---
+def step_9_coverage_quality_analysis(gdf_rbs, gdf_sectors):
+    if gdf_rbs is None or gdf_sectors is None:
+        print("No data for coverage quality analysis. Skipping step.")
+        return gdf_rbs, gdf_sectors
     
-    # Step 1: Loading data
+    print("\n" + "="*80)
+    print("STEP 9: COVERAGE QUALITY ANALYSIS")
+    print("="*80 + "\n")
+    
+    # Create directory for quality analysis results
+    quality_dir = os.path.join(RESULTS_DIR, "quality_analysis")
+    if not os.path.exists(quality_dir):
+        os.makedirs(quality_dir)
+    
+    # Identify critical areas with insufficient coverage
+    print("Identifying critical coverage areas...")
+    identify_critical_areas(
+        gdf_sectors,
+        grid_size=0.01,
+        output_path=os.path.join(quality_dir, "critical_areas_map.png")
+    )
+    
+    # Analyze coverage redundancy
+    print("Analyzing coverage redundancy...")
+    analyze_coverage_redundancy(
+        gdf_sectors,
+        grid_size=0.01,
+        output_path=os.path.join(quality_dir, "coverage_redundancy_map.png")
+    )
+    
+    # Calculate coverage efficiency metrics
+    print("Calculating coverage efficiency metrics...")
+    calculate_coverage_efficiency(
+        gdf_rbs,
+        gdf_sectors,
+        population_data=None,  # We don't have population data for this example
+        output_path=os.path.join(quality_dir, "coverage_efficiency_metrics.png")
+    )
+    
+    return gdf_rbs, gdf_sectors
+
+# --- Step 10: Coverage Prediction and Optimization ---
+def step_10_coverage_prediction(gdf_rbs, gdf_sectors):
+    if gdf_rbs is None or gdf_sectors is None:
+        print("No data for coverage prediction. Skipping step.")
+        return gdf_rbs, gdf_sectors
+    
+    print("\n" + "="*80)
+    print("STEP 10: COVERAGE PREDICTION AND OPTIMIZATION")
+    print("="*80 + "\n")
+    
+    # Create directory for prediction results
+    prediction_dir = os.path.join(RESULTS_DIR, "prediction")
+    if not os.path.exists(prediction_dir):
+        os.makedirs(prediction_dir)
+    
+    # Simulate optimization of RBS positions
+    print("Simulating optimization of RBS positions...")
+    simulate_coverage_optimization(
+        gdf_rbs,
+        gdf_sectors,
+        grid_size=0.01,
+        optimization_mode='adjust',
+        output_path=os.path.join(prediction_dir, "position_optimization_map.png")
+    )
+    
+    # Simulate adding new RBS for better coverage
+    print("Simulating addition of new RBS...")
+    simulate_coverage_optimization(
+        gdf_rbs,
+        gdf_sectors,
+        grid_size=0.01,
+        optimization_mode='add',
+        output_path=os.path.join(prediction_dir, "new_rbs_optimization_map.png")
+    )
+    
+    # Predict areas for network expansion
+    print("Predicting priority areas for network expansion...")
+    predict_expansion_areas(
+        gdf_rbs,
+        gdf_sectors,
+        population_data=None,  # We don't have population data for this example
+        road_network=None,     # We don't have road network data for this example
+        output_path=os.path.join(prediction_dir, "expansion_prediction_map.png"),
+        n_suggested_areas=5
+    )
+    
+    return gdf_rbs, gdf_sectors
+
+def main():
+    print("\n" + "="*80)
+    print("RADIO BASE STATIONS (RBS) ANALYSIS TOOL")
+    print("="*80)
+    print("\nStarting comprehensive analysis of radio base stations data...\n")
+    
+    # Step 1: Load and clean data
     df = step_1_loading()
     
     # Step 2: Exploratory analysis
@@ -428,31 +586,32 @@ def main():
     gdf_rbs, gdf_sectors = step_3_coverage_processing(df)
     
     # Step 4: Advanced visualizations
-    step_4_advanced_visualizations(gdf_rbs, gdf_sectors)
+    gdf_rbs, gdf_sectors = step_4_advanced_visualizations(gdf_rbs, gdf_sectors)
     
     # Step 5: Graph analysis
-    step_5_graph_analysis(gdf_rbs)
+    g_rbs = step_5_graph_analysis(gdf_rbs)
     
-    # Step 6: Technology and Frequency Analysis
+    # Step 6: Technology and Frequency analysis
     step_6_tech_frequency_analysis(gdf_rbs)
     
-    # Step 7: Advanced Temporal Analysis
+    # Step 7: Temporal analysis
     step_7_temporal_analysis(gdf_rbs)
     
-    # Step 8: Advanced Integrations (Correlation, Spatial, Integration, Prediction)
+    # Step 8: Advanced integrations (temporal+spatial+tech)
     step_8_advanced_integrations(gdf_rbs)
     
-    # Dashboard (commented out because it blocks execution until closed)
-    # try:
-    #     run_dashboard(gdf_rbs)
-    # except Exception as e:
-    #     print(f"Error starting dashboard: {e}")
+    # Step 9: Coverage Quality Analysis (new)
+    gdf_rbs, gdf_sectors = step_9_coverage_quality_analysis(gdf_rbs, gdf_sectors)
+    
+    # Step 10: Coverage Prediction and Optimization (new)
+    gdf_rbs, gdf_sectors = step_10_coverage_prediction(gdf_rbs, gdf_sectors)
     
     print("\n" + "="*80)
-    print("ANALYSIS COMPLETED SUCCESSFULLY")
+    print("ANALYSIS COMPLETE")
+    print("Results saved in:", RESULTS_DIR)
     print("="*80)
-    print(f"\nResults saved in the '{RESULTS_DIR}' directory.")
-    print("\nTo run the interactive dashboard, use: python -m src.dashboard_interactive")
+    
+    return 0
 
 if __name__ == "__main__":
     main()
