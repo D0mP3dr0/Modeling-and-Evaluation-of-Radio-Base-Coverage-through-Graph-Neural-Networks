@@ -100,25 +100,50 @@ def create_3d_coverage_map(gdf_rbs, output_path, resolution=100, z_exaggeration=
     plt.close(fig)
     print(f"3D coverage map saved at {output_path}")
     
-    # Create an additional interactive figure if matplotlib supports HTML output
+    # Create an additional interactive figure if plotly is available
     try:
-        from matplotlib.backends.backend_html import FigureManagerHTML
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+        
         output_html = output_path.replace('.png', '.html')
         
-        fig_html = plt.figure(figsize=(16, 12))
-        ax_html = fig_html.add_subplot(111, projection='3d')
-        surf_html = ax_html.plot_surface(X, Y, Z * z_exaggeration,
-                                        cmap=custom_cmap, alpha=0.8,
-                                        linewidth=0, antialiased=True)
-        ax_html.scatter(points[:, 0], points[:, 1], values * z_exaggeration,
-                       c='black', s=50, marker='^')
+        # Create 3D surface plot with plotly
+        fig_plotly = go.Figure(data=[
+            go.Surface(z=Z * z_exaggeration, x=X, y=Y, 
+                       colorscale='Viridis', showscale=True, 
+                       colorbar=dict(title='Signal Strength (EIRP_dBm)'))
+        ])
         
-        with open(output_html, 'w') as f:
-            f.write(FigureManagerHTML(fig_html).get_html())
-            
+        # Add RBS points
+        fig_plotly.add_trace(go.Scatter3d(
+            x=points[:, 0], y=points[:, 1], z=values * z_exaggeration,
+            mode='markers',
+            marker=dict(
+                size=8,
+                color='red',
+                symbol='circle',
+            ),
+            name='RBS Locations'
+        ))
+        
+        # Update layout
+        fig_plotly.update_layout(
+            title='Interactive 3D Signal Coverage Map',
+            scene=dict(
+                xaxis_title='X (meters)',
+                yaxis_title='Y (meters)',
+                zaxis_title='Signal Strength',
+                aspectratio=dict(x=1, y=1, z=0.5)
+            ),
+            autosize=True,
+            margin=dict(l=65, r=50, b=65, t=90),
+        )
+        
+        # Save as HTML
+        fig_plotly.write_html(output_html)
         print(f"Interactive 3D map saved at {output_html}")
-    except:
-        print("Interactive 3D visualization not supported; only static image saved.")
+    except ImportError:
+        print("Interactive 3D visualization requires plotly. Install with: pip install plotly")
 
 def simulate_coverage_in_climate_conditions(gdf_rbs, gdf_sectors, output_path, conditions=None):
     """
