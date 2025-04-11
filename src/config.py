@@ -38,7 +38,7 @@ DEFAULT_FREQUENCY_MHZ = 850.0      # Default frequency in MHz
 DEFAULT_AZIMUTHS = [0, 120, 240]   # Default azimuths for 3-sector sites
 
 # Region settings
-DEFAULT_REGION_BBOX = [-23.0, -22.5, -43.5, -43.0]  # Default bounding box [lat_min, lat_max, lon_min, lon_max]
+DEFAULT_REGION_BBOX = [-90.0, 90.0, -180.0, 180.0]  # Global bounding box [lat_min, lat_max, lon_min, lon_max]
 
 # Performance settings
 BATCH_SIZE = 1000                 # Default batch size for processing

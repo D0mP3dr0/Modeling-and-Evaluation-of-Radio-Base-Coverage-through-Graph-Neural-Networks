@@ -15,7 +15,7 @@ import geopandas as gpd
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 from matplotlib.patches import Patch
 import matplotlib.patheffects as PathEffects
-from matplotlib.offsetbox import AnchoredSizeBar
+from mpl_toolkits.axes_grid1.anchored_artists import AnchoredSizeBar
 import matplotlib.font_manager as fm
 from datetime import datetime
 import os
@@ -30,6 +30,139 @@ OPERATOR_COLORS = {
     'VIVO': '#9932CC',
     'TIM': '#0000CD'
 }
+
+def create_visualizations(gdf_rbs, results_dir):
+    """
+    Creates a set of visualizations for the RBS data.
+    
+    Args:
+        gdf_rbs: GeoDataFrame with the RBS data
+        results_dir: Directory to save visualizations
+        
+    Returns:
+        dict: Paths to generated visualizations
+    """
+    print("Creating visualizations...")
+    
+    # Create output directory
+    os.makedirs(results_dir, exist_ok=True)
+    
+    # Configure visualization style
+    configure_visualization_style()
+    
+    # Prepare data
+    # Check if we have necessary columns for visualization
+    if 'Operator' not in gdf_rbs.columns and 'NomeEntidade' in gdf_rbs.columns:
+        # Use NomeEntidade as Operator if Operator column is missing
+        gdf_rbs = gdf_rbs.copy()
+        gdf_rbs['Operator'] = gdf_rbs['NomeEntidade']
+    
+    # Calculate EIRP (Effective Isotropic Radiated Power) if possible
+    if 'PotenciaTransmissorWatts' in gdf_rbs.columns and 'GanhoAntena' in gdf_rbs.columns:
+        try:
+            # Convert power from watts to dBm: P(dBm) = 10 * log10(P(mW))
+            # 1 watt = 1000 mW
+            gdf_rbs['Power_dBm'] = 10 * np.log10(gdf_rbs['PotenciaTransmissorWatts'] * 1000)
+            
+            # Calculate EIRP: EIRP(dBm) = P(dBm) + G(dBi)
+            gdf_rbs['EIRP_dBm'] = gdf_rbs['Power_dBm'] + gdf_rbs['GanhoAntena']
+            
+            print("Calculated EIRP for visualization")
+        except Exception as e:
+            print(f"Could not calculate EIRP: {e}")
+            # Add default EIRP values based on frequency and power
+            if 'FreqTxMHz' in gdf_rbs.columns and 'PotenciaTransmissorWatts' in gdf_rbs.columns:
+                gdf_rbs['EIRP_dBm'] = 10 * np.log10(gdf_rbs['PotenciaTransmissorWatts'] * 1000) + 16  # Assuming 16 dBi gain
+    elif 'PotenciaTransmissorWatts' in gdf_rbs.columns:
+        # If we only have power, use it with a default gain
+        gdf_rbs['EIRP_dBm'] = 10 * np.log10(gdf_rbs['PotenciaTransmissorWatts'] * 1000) + 16  # Assuming 16 dBi gain
+    else:
+        # Add default EIRP values
+        gdf_rbs['EIRP_dBm'] = 65  # Typical value around 65 dBm
+    
+    # Add coverage radius if not present
+    if 'Coverage_Radius_km' not in gdf_rbs.columns:
+        if 'FreqTxMHz' in gdf_rbs.columns:
+            # Estimate coverage radius based on frequency
+            gdf_rbs['Coverage_Radius_km'] = gdf_rbs['FreqTxMHz'].apply(
+                lambda f: 5.0 if f < 1000 else (3.0 if f < 2000 else 1.5)
+            )
+        else:
+            # Default radius
+            gdf_rbs['Coverage_Radius_km'] = 2.0
+    
+    # Create simplified coverage sectors
+    print("Creating simplified coverage sectors for visualization...")
+    sectors = []
+    
+    for idx, rbs in gdf_rbs.iterrows():
+        if isinstance(rbs.geometry, gpd.geoseries.GeoSeries):
+            geometry = rbs.geometry.iloc[0]
+        else:
+            geometry = rbs.geometry
+            
+        if geometry is None:
+            continue
+            
+        # Convert radius to meters (assuming CRS is in degrees)
+        radius_m = rbs['Coverage_Radius_km'] * 1000
+        
+        # Create a simple circular buffer
+        sectors.append({
+            'geometry': geometry.buffer(radius_m/111000),  # Rough conversion to degrees
+            'RBS_ID': idx,
+            'Operator': rbs.get('Operator', 'Unknown'),
+            'Technology': rbs.get('Tecnologia', 'Unknown'),
+            'FreqMHz': rbs.get('FreqTxMHz', 0)
+        })
+    
+    gdf_sectors = gpd.GeoDataFrame(sectors, crs=gdf_rbs.crs)
+    
+    # Generate visualizations
+    output_paths = {}
+    
+    # 1. Folium interactive map
+    try:
+        folium_path = os.path.join(results_dir, 'interactive_map.html')
+        create_folium_map(gdf_rbs, folium_path)
+        output_paths['folium_map'] = folium_path
+    except Exception as e:
+        print(f"Error creating Folium map: {e}")
+    
+    # 2. RBS Positioning map
+    try:
+        positioning_path = os.path.join(results_dir, 'rbs_positioning.png')
+        create_positioning_map(gdf_rbs, positioning_path)
+        output_paths['positioning_map'] = positioning_path
+    except Exception as e:
+        print(f"Error creating positioning map: {e}")
+    
+    # 3. Coverage map by operator
+    try:
+        coverage_path = os.path.join(results_dir, 'coverage_by_operator.png')
+        create_coverage_map_by_operator(gdf_rbs, gdf_sectors, coverage_path)
+        output_paths['coverage_map'] = coverage_path
+    except Exception as e:
+        print(f"Error creating coverage map: {e}")
+    
+    # 4. Coverage overlap map
+    try:
+        overlap_path = os.path.join(results_dir, 'coverage_overlap.png')
+        create_overlap_map(gdf_rbs, gdf_sectors, overlap_path)
+        output_paths['overlap_map'] = overlap_path
+    except Exception as e:
+        print(f"Error creating overlap map: {e}")
+    
+    # 5. Heat map of power
+    try:
+        heatmap_path = os.path.join(results_dir, 'power_heatmap.png')
+        create_heat_map_power(gdf_rbs, heatmap_path)
+        output_paths['heatmap'] = heatmap_path
+    except Exception as e:
+        print(f"Error creating heat map: {e}")
+    
+    print(f"Visualizations created successfully. Results saved to {results_dir}")
+    return output_paths
 
 def configure_visualization_style():
     """Configures the default style for all visualizations."""

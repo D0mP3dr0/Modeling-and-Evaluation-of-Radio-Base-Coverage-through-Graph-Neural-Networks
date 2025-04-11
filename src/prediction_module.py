@@ -20,7 +20,7 @@ import os
 from datetime import datetime, timedelta
 
 # Import from other modules
-from advanced_temporal_analysis import preprocess_temporal_data
+from src.advanced_temporal_analysis import preprocess_temporal_data
 
 def preprocess_prediction_data(gdf_rbs):
     """

@@ -958,7 +958,7 @@ def create_notebook_templates(output_path):
     notebooks_dir = os.path.join(output_path, "notebook_templates")
     os.makedirs(notebooks_dir, exist_ok=True)
     
-    # Generate a simple HTML page listing the templates
+    # Generate HTML index for templates
     html_content = """
     <!DOCTYPE html>
     <html>
@@ -1010,6 +1010,156 @@ def create_notebook_templates(output_path):
     
     template_paths.append(html_path)
     print(f"Notebook templates index saved to {html_path}")
+    
+    # Import required packages for Jupyter notebook creation
+    try:
+        import nbformat
+        from nbformat.v4 import new_notebook, new_markdown_cell, new_code_cell
+    except ImportError:
+        print("Warning: nbformat package not found. Notebook creation skipped.")
+        return template_paths
+    
+    # Create actual Jupyter notebooks for each template
+    for template_id, template in templates.items():
+        # Create a new notebook
+        nb = new_notebook()
+        
+        # Add a title and description
+        nb.cells.append(new_markdown_cell(f"# {template['title']}\n\n{template['description']}"))
+        
+        # Add a section for each part
+        for section in template['sections']:
+            # Add a section header
+            nb.cells.append(new_markdown_cell(f"## {section}"))
+            
+            # Add appropriate code cells with sample code based on the section
+            if section == "Data Loading":
+                nb.cells.append(new_code_cell(
+                    "# Import necessary libraries\n"
+                    "import os\n"
+                    "import pandas as pd\n"
+                    "import geopandas as gpd\n"
+                    "import matplotlib.pyplot as plt\n"
+                    "import seaborn as sns\n"
+                    "import numpy as np\n"
+                    "from shapely.geometry import Point\n\n"
+                    "# Set plot style\n"
+                    "plt.style.use('seaborn-whitegrid')\n"
+                    "sns.set_context('notebook')\n\n"
+                    "# Load data from CSV\n"
+                    "# Update the path to your data file\n"
+                    "data_path = '../data/csv_licenciamento_bruto.csv.csv'\n"
+                    "df = pd.read_csv(data_path)\n\n"
+                    "# Display first few rows\n"
+                    "df.head()"
+                ))
+            elif section == "Data Cleaning and Preparation":
+                nb.cells.append(new_code_cell(
+                    "# Clean the data\n"
+                    "# Remove rows with missing coordinates\n"
+                    "df_clean = df.dropna(subset=['lat', 'lon'])\n\n"
+                    "# Convert to GeoDataFrame\n"
+                    "geometry = [Point(xy) for xy in zip(df_clean['lon'], df_clean['lat'])]\n"
+                    "gdf = gpd.GeoDataFrame(df_clean, geometry=geometry, crs='EPSG:4326')\n\n"
+                    "# Display the GeoDataFrame information\n"
+                    "gdf.info()"
+                ))
+            elif section == "Basic Statistics":
+                nb.cells.append(new_code_cell(
+                    "# Calculate basic statistics\n"
+                    "# Number of RBS stations by operator\n"
+                    "operator_counts = gdf['operator'].value_counts()\n"
+                    "print(f'Number of RBS stations by operator:\\n{operator_counts}')\n\n"
+                    "# Statistics for numeric columns\n"
+                    "numeric_stats = gdf.describe(include=[np.number])\n"
+                    "print('\\nNumeric column statistics:')\n"
+                    "numeric_stats"
+                ))
+            elif section == "Geographic Distribution":
+                nb.cells.append(new_code_cell(
+                    "# Plot geographic distribution of RBS stations\n"
+                    "fig, ax = plt.subplots(figsize=(12, 10))\n"
+                    "gdf.plot(ax=ax, markersize=5, alpha=0.7)\n"
+                    "ax.set_title('Geographic Distribution of Radio Base Stations')\n"
+                    "plt.tight_layout()\n"
+                    "plt.show()"
+                ))
+            elif section == "Network Graph Construction":
+                nb.cells.append(new_code_cell(
+                    "# Import network analysis libraries\n"
+                    "import networkx as nx\n"
+                    "from scipy.spatial import Delaunay\n\n"
+                    "# Create a graph based on proximity\n"
+                    "# Extract coordinates for triangulation\n"
+                    "coords = np.array([(geom.x, geom.y) for geom in gdf.geometry])\n\n"
+                    "# Create Delaunay triangulation\n"
+                    "tri = Delaunay(coords)\n\n"
+                    "# Create a graph from the triangulation\n"
+                    "G = nx.Graph()\n"
+                    "for i, point in enumerate(coords):\n"
+                    "    G.add_node(i, pos=point, data=gdf.iloc[i])\n\n"
+                    "# Add edges from triangulation\n"
+                    "edge_list = []\n"
+                    "for simplex in tri.simplices:\n"
+                    "    edge_list.extend([(simplex[0], simplex[1]), (simplex[1], simplex[2]), (simplex[2], simplex[0])])\n\n"
+                    "# Remove duplicate edges\n"
+                    "edge_list = list(set(tuple(sorted(edge)) for edge in edge_list))\n"
+                    "G.add_edges_from(edge_list)\n\n"
+                    "print(f'Graph created with {G.number_of_nodes()} nodes and {G.number_of_edges()} edges')"
+                ))
+            else:
+                # Generic code cell for other sections
+                nb.cells.append(new_code_cell(
+                    f"# Code for {section}\n"
+                    "# Add your {section.lower()} code here\n"
+                ))
+            
+            # Add a markdown cell with instructions
+            nb.cells.append(new_markdown_cell(
+                f"### {section} Analysis\n\n"
+                f"In this section, we perform {section.lower()} analysis on the RBS data.\n\n"
+                f"*Instructions: Add your own code to expand on this {section.lower()} analysis.*"
+            ))
+        
+        # Save the notebook
+        notebook_filename = f"rbs_{template_id}.ipynb"
+        notebook_path = os.path.join(notebooks_dir, notebook_filename)
+        
+        with open(notebook_path, 'w') as f:
+            nbformat.write(nb, f)
+        
+        template_paths.append(notebook_path)
+        print(f"Created notebook: {notebook_path}")
+        
+        # Create a simplified version for inclusion in the main project notebooks directory
+        if template_id == "basic_analysis":
+            simplified_nb = new_notebook()
+            simplified_nb.cells.append(new_markdown_cell(f"# {template['title']} (Simplified)\n\n{template['description']}"))
+            simplified_nb.cells.append(new_markdown_cell("## A simplified template for getting started with RBS Analysis"))
+            simplified_nb.cells.append(new_code_cell(
+                "# Import libraries\n"
+                "import pandas as pd\n"
+                "import geopandas as gpd\n"
+                "import matplotlib.pyplot as plt\n"
+                "import seaborn as sns\n"
+                "from shapely.geometry import Point\n\n"
+                "# Load data\n"
+                "data_path = 'data/csv_licenciamento_bruto.csv.csv'  # Update path as needed\n"
+                "df = pd.read_csv(data_path)\n\n"
+                "# Convert to GeoDataFrame\n"
+                "geometry = [Point(xy) for xy in zip(df['lon'], df['lat'])]\n"
+                "gdf = gpd.GeoDataFrame(df, geometry=geometry, crs='EPSG:4326')\n\n"
+                "# Display first few rows\n"
+                "gdf.head()"
+            ))
+            
+            # Save the simplified notebook to the main notebooks directory
+            main_notebook_path = os.path.join("notebooks", "rbs_analysis_colab.ipynb")
+            with open(main_notebook_path, 'w') as f:
+                nbformat.write(simplified_nb, f)
+            
+            print(f"Created simplified notebook in main notebooks directory: {main_notebook_path}")
+            template_paths.append(main_notebook_path)
     
     return template_paths
 
@@ -1451,10 +1601,10 @@ def create_data_narratives(gdf_rbs, output_path):
 """
         
         for point in narrative['key_points']:
-            html_content += f'<div class="key-point">
+            html_content += f'''<div class="key-point">
             <div class="key-point-title">{point}</div>
             <p>This data narrative explores {point.lower()} through visualizations and analysis of the RBS dataset.</p>
-        </div>\n'
+        </div>\n'''
         
         html_content += """
     </div>

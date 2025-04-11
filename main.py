@@ -17,6 +17,9 @@ project_dir = Path(__file__).resolve().parent
 if project_dir not in sys.path:
     sys.path.append(str(project_dir))
 
+# Enable GPU if available (use RTX 3060Ti)
+os.environ['USE_GPU'] = 'true'
+
 # Import configuration
 from src.config import DEFAULT_INPUT_PATH, RESULTS_DIR, setup_logging
 

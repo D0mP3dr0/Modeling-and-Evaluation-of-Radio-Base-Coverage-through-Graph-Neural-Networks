@@ -15,13 +15,13 @@ import tempfile
 import shutil
 
 # Import modules to test
-from tech_frequency_analysis import preprocess_tech_frequency_data, create_tech_scatter_plot
-from advanced_temporal_analysis import preprocess_temporal_data, create_deployment_timeline
-from correlation_analysis import preprocess_correlation_data, create_correlation_matrix
-from spatial_analysis import preprocess_spatial_data, create_density_map
-from integration_analysis import preprocess_integrated_data
-from prediction_module import preprocess_prediction_data
-from report_generator import generate_summary_statistics
+from src.tech_frequency_analysis import preprocess_tech_frequency_data, create_tech_scatter_plot
+from src.advanced_temporal_analysis import preprocess_temporal_data, create_deployment_timeline
+from src.correlation_analysis import preprocess_correlation_data, create_correlation_matrix
+from src.spatial_analysis import preprocess_spatial_data, create_density_map
+from src.integration_analysis import preprocess_integrated_data
+from src.prediction_module import preprocess_prediction_data
+from src.report_generator import generate_summary_statistics
 
 # Create a test fixture with synthetic RBS data
 def create_test_data(n_samples=100):

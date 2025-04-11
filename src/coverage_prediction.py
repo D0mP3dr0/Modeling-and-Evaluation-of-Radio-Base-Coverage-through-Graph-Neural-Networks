@@ -1093,3 +1093,97 @@ def get_color_for_expansion_score(score):
         return '#feb24c'  # Low priority
     else:
         return '#fed976'  # Very low priority 
+
+def run_coverage_prediction(gdf_rbs, results_dir):
+    """
+    Main function to run the coverage prediction analysis.
+    
+    Args:
+        gdf_rbs: GeoDataFrame with RBS data
+        results_dir: Directory to save results
+        
+    Returns:
+        dict: Results of the analysis
+    """
+    print("Running coverage prediction analysis...")
+    
+    # Create output directory
+    coverage_dir = os.path.join(results_dir, 'coverage_prediction')
+    os.makedirs(coverage_dir, exist_ok=True)
+    
+    # Step 1: Create a simplified sectors dataset for analysis
+    # For this example, we'll create a simple circular buffer for each RBS
+    if 'Coverage_Radius_km' not in gdf_rbs.columns:
+        # Estimate coverage radius based on frequency if available
+        if 'FreqTxMHz' in gdf_rbs.columns:
+            print("Estimating coverage radius based on frequency...")
+            gdf_rbs['Coverage_Radius_km'] = gdf_rbs['FreqTxMHz'].apply(
+                lambda f: 5.0 if f < 1000 else (3.0 if f < 2000 else 1.5)
+            )
+        else:
+            # Default radius
+            print("Using default coverage radius of 2 km")
+            gdf_rbs['Coverage_Radius_km'] = 2.0
+    
+    # Create simplified coverage sectors
+    print("Creating simplified coverage sectors...")
+    sectors = []
+    
+    for idx, rbs in gdf_rbs.iterrows():
+        if isinstance(rbs.geometry, Point):
+            # Convert radius to meters (assuming CRS is in degrees)
+            radius_m = rbs['Coverage_Radius_km'] * 1000
+            
+            # Create a simple circular buffer
+            sectors.append({
+                'geometry': rbs.geometry.buffer(radius_m/111000),  # Rough conversion to degrees
+                'RBS_ID': idx,
+                'Operator': rbs.get('Operator', 'Unknown'),
+                'Technology': rbs.get('Tecnologia', 'Unknown'),
+                'FreqMHz': rbs.get('FreqTxMHz', 0)
+            })
+    
+    gdf_sectors = gpd.GeoDataFrame(sectors, crs=gdf_rbs.crs)
+    
+    # Step 2: Run coverage optimization simulation
+    print("Simulating coverage optimization...")
+    output_path = os.path.join(coverage_dir, 'coverage_optimization.png')
+    optimized_rbs, optimized_sectors = simulate_coverage_optimization(
+        gdf_rbs, gdf_sectors, 
+        grid_size=0.01,
+        optimization_mode='adjust', 
+        output_path=output_path
+    )
+    
+    # Create interactive map
+    interactive_map_path = os.path.join(coverage_dir, 'coverage_optimization_interactive.html')
+    create_interactive_optimization_map(
+        gdf_rbs, gdf_sectors, 
+        optimized_rbs, optimized_sectors,
+        None, None, 
+        interactive_map_path
+    )
+    
+    # Step 3: Predict expansion areas
+    print("Predicting expansion areas...")
+    expansion_map_path = os.path.join(coverage_dir, 'expansion_prediction.png')
+    expansion_areas = predict_expansion_areas(
+        gdf_rbs, gdf_sectors,
+        output_path=expansion_map_path
+    )
+    
+    # Create interactive expansion map
+    interactive_expansion_path = os.path.join(coverage_dir, 'expansion_prediction_interactive.html')
+    create_interactive_expansion_map(
+        gdf_rbs, gdf_sectors, 
+        expansion_areas, 
+        interactive_expansion_path
+    )
+    
+    print(f"Coverage prediction analysis complete. Results saved to {coverage_dir}")
+    return {
+        'optimized_rbs': optimized_rbs,
+        'sectors': gdf_sectors,
+        'expansion_areas': expansion_areas,
+        'output_dir': coverage_dir
+    } 

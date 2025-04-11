@@ -15,8 +15,8 @@ from datetime import datetime
 import calendar
 
 # Import from other modules
-from advanced_temporal_analysis import preprocess_temporal_data
-from tech_frequency_analysis import preprocess_tech_frequency_data
+from src.advanced_temporal_analysis import preprocess_temporal_data
+from src.tech_frequency_analysis import preprocess_tech_frequency_data
 
 # Default color configuration for operators
 OPERATOR_COLORS = {

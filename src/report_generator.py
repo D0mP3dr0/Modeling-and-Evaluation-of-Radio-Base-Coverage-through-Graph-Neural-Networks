@@ -15,12 +15,12 @@ import base64
 from PIL import Image
 
 # Import from other modules
-from tech_frequency_analysis import preprocess_tech_frequency_data, run_tech_frequency_analysis
-from advanced_temporal_analysis import preprocess_temporal_data, run_temporal_analysis
-from correlation_analysis import preprocess_correlation_data, run_correlation_analysis
-from spatial_analysis import preprocess_spatial_data, run_spatial_analysis
-from integration_analysis import run_integration_analysis
-from prediction_module import preprocess_prediction_data, run_prediction_analysis
+from src.tech_frequency_analysis import preprocess_tech_frequency_data, run_tech_frequency_analysis
+from src.advanced_temporal_analysis import preprocess_temporal_data, run_temporal_analysis
+from src.correlation_analysis import preprocess_correlation_data, run_correlation_analysis
+from src.spatial_analysis import preprocess_spatial_data, run_spatial_analysis
+from src.integration_analysis import run_integration_analysis
+from src.prediction_module import preprocess_prediction_data, run_prediction_analysis
 
 class RBSReportPDF(FPDF):
     """Custom PDF class for RBS reports."""

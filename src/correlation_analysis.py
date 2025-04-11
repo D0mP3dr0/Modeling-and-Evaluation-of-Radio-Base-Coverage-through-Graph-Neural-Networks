@@ -15,7 +15,7 @@ import os
 from scipy.stats import pearsonr, spearmanr
 
 # Import from other modules if needed
-from tech_frequency_analysis import preprocess_tech_frequency_data
+from src.tech_frequency_analysis import preprocess_tech_frequency_data
 
 def preprocess_correlation_data(gdf_rbs):
     """

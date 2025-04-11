@@ -9,6 +9,7 @@ from sklearn.cluster import DBSCAN
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import os
 
 def setup_visualization_options():
     """Configures global options for visualization libraries."""
@@ -16,6 +17,122 @@ def setup_visualization_options():
     sns.set(style="whitegrid")
     pd.set_option('display.max_columns', None)
     plt.rcParams['figure.figsize'] = (12, 8)
+
+def run_basic_analysis(gdf_rbs, results_dir):
+    """
+    Runs basic analysis on the RBS data and generates visualizations and statistics.
+    
+    Args:
+        gdf_rbs: GeoDataFrame with RBS data
+        results_dir: Directory to save results
+        
+    Returns:
+        dict: Results of the analysis
+    """
+    print("Running basic analysis...")
+    
+    # Create output directory
+    os.makedirs(results_dir, exist_ok=True)
+    
+    # Convert GeoDataFrame to DataFrame for analysis
+    df = pd.DataFrame(gdf_rbs.drop(columns=['geometry']) if 'geometry' in gdf_rbs.columns else gdf_rbs)
+    
+    # Setup visualization options
+    setup_visualization_options()
+    
+    # Run exploratory analysis
+    exploratory_analysis_rbs(df, results_dir)
+    
+    # Generate additional visualizations
+    
+    # 1. Operator distribution
+    if 'Operator' in df.columns:
+        try:
+            plt.figure(figsize=(12, 6))
+            op_counts = df['Operator'].value_counts()
+            colors = plt.cm.viridis(np.linspace(0, 1, len(op_counts)))
+            op_counts.plot.bar(color=colors)
+            plt.title('RBS Distribution by Operator', fontsize=14)
+            plt.xlabel('Operator', fontsize=12)
+            plt.ylabel('Number of RBS', fontsize=12)
+            plt.xticks(rotation=45)
+            plt.grid(axis='y', linestyle='--', alpha=0.7)
+            plt.tight_layout()
+            op_dist_path = os.path.join(results_dir, 'operator_distribution.png')
+            plt.savefig(op_dist_path, dpi=300, bbox_inches='tight')
+            plt.close()
+            print(f"Operator distribution chart saved to {op_dist_path}")
+        except Exception as e:
+            print(f"Error generating operator distribution: {e}")
+    
+    # 2. Power distribution
+    if 'PotenciaTransmissorWatts' in df.columns:
+        try:
+            plt.figure(figsize=(12, 6))
+            sns.histplot(df['PotenciaTransmissorWatts'].dropna(), bins=30, kde=True)
+            plt.title('Transmitter Power Distribution', fontsize=14)
+            plt.xlabel('Power (Watts)', fontsize=12)
+            plt.ylabel('Frequency', fontsize=12)
+            plt.grid(linestyle='--', alpha=0.7)
+            plt.tight_layout()
+            power_dist_path = os.path.join(results_dir, 'power_distribution.png')
+            plt.savefig(power_dist_path, dpi=300, bbox_inches='tight')
+            plt.close()
+            print(f"Power distribution chart saved to {power_dist_path}")
+        except Exception as e:
+            print(f"Error generating power distribution: {e}")
+    
+    # 3. Frequency distribution
+    if 'FreqTxMHz' in df.columns:
+        try:
+            plt.figure(figsize=(12, 6))
+            sns.histplot(df['FreqTxMHz'].dropna(), bins=30, kde=True)
+            plt.title('Transmission Frequency Distribution', fontsize=14)
+            plt.xlabel('Frequency (MHz)', fontsize=12)
+            plt.ylabel('Count', fontsize=12)
+            plt.grid(linestyle='--', alpha=0.7)
+            plt.tight_layout()
+            freq_dist_path = os.path.join(results_dir, 'frequency_distribution.png')
+            plt.savefig(freq_dist_path, dpi=300, bbox_inches='tight')
+            plt.close()
+            print(f"Frequency distribution chart saved to {freq_dist_path}")
+        except Exception as e:
+            print(f"Error generating frequency distribution: {e}")
+    
+    # 4. Geographic distribution using plotly for interactive map
+    if 'Latitude' in df.columns and 'Longitude' in df.columns:
+        try:
+            # Create scatter mapbox
+            fig = px.scatter_mapbox(
+                df,
+                lat='Latitude',
+                lon='Longitude',
+                color='Operator' if 'Operator' in df.columns else None,
+                hover_name='Operator' if 'Operator' in df.columns else None,
+                hover_data={
+                    'Latitude': True,
+                    'Longitude': True,
+                    'FreqTxMHz': True if 'FreqTxMHz' in df.columns else False,
+                    'PotenciaTransmissorWatts': True if 'PotenciaTransmissorWatts' in df.columns else False,
+                    'Tecnologia': True if 'Tecnologia' in df.columns else False,
+                },
+                zoom=8,
+                height=800,
+                title='Geographic Distribution of Radio Base Stations'
+            )
+            
+            fig.update_layout(mapbox_style="carto-positron")
+            fig.update_layout(margin={"r": 0, "t": 30, "l": 0, "b": 0})
+            
+            # Save as interactive HTML
+            geo_map_path = os.path.join(results_dir, 'geographic_distribution.html')
+            fig.write_html(geo_map_path)
+            print(f"Interactive geographic distribution saved to {geo_map_path}")
+        except Exception as e:
+            print(f"Error generating geographic distribution: {e}")
+    
+    print("Basic analysis completed.")
+    return {"output_dir": results_dir}
 
 def exploratory_analysis_rbs(df: pd.DataFrame, results_path: str):
     """Performs exploratory analysis and generates visualizations for the RBS dataset."""
