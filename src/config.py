@@ -1,122 +1,258 @@
 """
-Configuration module for the RBS Analysis project.
+Configuration Module for RBS Analysis
 
-This module centralizes all configuration parameters used throughout the project,
-making it easier to modify settings without changing the code.
+This module centralizes all configuration settings for the RBS analysis system,
+including paths, constants, logging configuration, and environment setup.
 """
 
 import os
+import sys
 import logging
+import json
 from pathlib import Path
+import warnings
+from typing import Dict, List, Optional, Union, Any
 
-# Project paths
-PROJECT_ROOT = Path(__file__).parent.parent.absolute()
-DATA_DIR = os.path.join(PROJECT_ROOT, "data")
-RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
-LOGS_DIR = os.path.join(PROJECT_ROOT, "logs")
+# Determine if we're running in a development, test, or production environment
+ENVIRONMENT = os.environ.get('RBS_ENVIRONMENT', 'development')
 
-# Input/Output files
-DEFAULT_INPUT_PATH = os.path.join(DATA_DIR, "csv_licenciamento_bruto.csv")
-DEFAULT_OUTPUT_PATH = os.path.join(DATA_DIR, "erb_processed.csv")
+# Base directories
+ROOT_DIR = Path(__file__).parent.parent.absolute()
+DATA_DIR = os.path.join(ROOT_DIR, 'data')
+RESULTS_DIR = os.path.join(ROOT_DIR, 'results')
+LOG_DIR = os.path.join(ROOT_DIR, 'logs')
+CACHE_DIR = os.path.join(ROOT_DIR, 'cache')
 
-# Create necessary directories
-for directory in [DATA_DIR, RESULTS_DIR, LOGS_DIR]:
+# Create directories if they don't exist
+for directory in [DATA_DIR, RESULTS_DIR, LOG_DIR, CACHE_DIR]:
     os.makedirs(directory, exist_ok=True)
 
-# Region of interest (Sorocaba bbox)
-# Format: [lat_min, lat_max, lon_min, lon_max]
-DEFAULT_REGION_BBOX = [-23.60, -23.30, -47.65, -47.25]
-
-# Operator mapping for standardization
-OPERATOR_MAPPING = {
-    'CLARO': 'CLARO',
-    'CLARO S.A.': 'CLARO',
-    'OI': 'OI',
-    'OI MÓVEL S.A.': 'OI',
-    'VIVO': 'VIVO',
-    'TELEFÔNICA BRASIL S.A.': 'VIVO',
-    'TIM': 'TIM',
-    'TIM S.A.': 'TIM'
-}
+# Input and output paths
+DEFAULT_INPUT_PATH = os.path.join(DATA_DIR, 'input_data.csv')
+DEFAULT_OUTPUT_PATH = os.path.join(RESULTS_DIR, 'processed_data.csv')
 
 # Default values for missing data
-DEFAULT_POWER_WATTS = 20.0
-DEFAULT_ANTENNA_GAIN = 16.0
-DEFAULT_FREQUENCY_MHZ = 850.0
-DEFAULT_AZIMUTHS = [0, 120, 240]  # Standard for 3 sectors
+DEFAULT_POWER_WATTS = 25.0         # Default transmitter power in Watts
+DEFAULT_ANTENNA_GAIN = 15.0        # Default antenna gain in dBi
+DEFAULT_FREQUENCY_MHZ = 850.0      # Default frequency in MHz
+DEFAULT_AZIMUTHS = [0, 120, 240]   # Default azimuths for 3-sector sites
 
-# Visualization settings
-VIZ_DEFAULTS = {
-    'figsize_small': (10, 6),
-    'figsize_medium': (12, 8),
-    'figsize_large': (16, 10),
-    'dpi': 300,
-    'cmap': 'viridis',
-    'marker_size': 50,
-    'line_width': 1.5,
-    'alpha': 0.7
-}
+# Region settings
+DEFAULT_REGION_BBOX = [-23.0, -22.5, -43.5, -43.0]  # Default bounding box [lat_min, lat_max, lon_min, lon_max]
 
-# Colors for operators
-OPERATOR_COLORS = {
-    'CLARO': '#E02020',  # Red
-    'OI': '#FFD700',     # Yellow
-    'VIVO': '#9932CC',   # Purple
-    'TIM': '#0000CD',    # Blue
-    'OTHER': '#CCCCCC'   # Gray
-}
+# Performance settings
+BATCH_SIZE = 1000                 # Default batch size for processing
+MULTIPROCESSING_THRESHOLD = 10000  # Threshold for switching to multiprocessing
+GPU_MEMORY_LIMIT = 0.8            # Maximum fraction of GPU memory to use (0.0-1.0)
+CACHE_ENABLED = True              # Whether to use result caching
 
-# Colors for technologies
-TECHNOLOGY_COLORS = {
-    'GSM': '#66c2a5',
-    '2G': '#66c2a5',
-    '3G': '#fc8d62',
-    '4G': '#8da0cb',
-    '4G+': '#e78ac3',
-    '5G': '#a6d854',
-    'N/A': '#cccccc'
-}
-
-# Graph analysis parameters
-GRAPH_PARAMS = {
-    'max_edge_distance_km': 5.0,  # Maximum distance between connected nodes
-    'node_size': 100,
-    'edge_width': 0.7,
-    'community_resolution': 1.0,  # Resolution parameter for community detection
-}
-
-# Coverage model parameters
-COVERAGE_PARAMS = {
-    'urban_factor': 1.0,
-    'suburban_factor': 1.4,
-    'rural_factor': 2.0,
-    'urban_density_threshold': 10,  # RBS per km²
-    'suburban_density_threshold': 3  # RBS per km²
+# Operator name standardization mapping
+OPERATOR_MAPPING = {
+    'CLARO': 'CLARO',
+    'AMERICEL': 'CLARO',
+    'BCP': 'CLARO',
+    'TELECOM AMERICAS': 'CLARO',
+    
+    'TIM': 'TIM',
+    'TIM CELULAR': 'TIM',
+    'TIM NORDESTE': 'TIM',
+    
+    'VIVO': 'VIVO',
+    'TELEFONICA': 'VIVO',
+    'TELEMIG': 'VIVO',
+    
+    'OI': 'OI',
+    'TNL': 'OI',
+    'TELEMAR': 'OI',
+    'BRASIL TELECOM': 'OI'
 }
 
 # Logging configuration
-LOG_LEVEL = logging.INFO
-LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+def setup_logging(log_filename: Optional[str] = None, 
+                 console_level: int = logging.INFO,
+                 file_level: int = logging.DEBUG) -> logging.Logger:
+    """
+    Configure logging with both console and file handlers.
+    
+    Args:
+        log_filename: Name of the log file (if None, a default will be used)
+        console_level: Logging level for console output
+        file_level: Logging level for file output
+        
+    Returns:
+        logging.Logger: Configured logger
+    """
+    # Create logger
+    logger = logging.getLogger('rbs_analysis')
+    logger.setLevel(logging.DEBUG)
+    
+    # Remove any existing handlers
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+    
+    # Create console handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(console_level)
+    console_format = logging.Formatter('%(levelname)s: %(message)s')
+    console_handler.setFormatter(console_format)
+    logger.addHandler(console_handler)
+    
+    # Create file handler if requested
+    if log_filename:
+        if not log_filename.endswith('.log'):
+            log_filename += '.log'
+        
+        log_path = os.path.join(LOG_DIR, log_filename)
+        file_handler = logging.FileHandler(log_path)
+        file_handler.setLevel(file_level)
+        file_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(file_format)
+        logger.addHandler(file_handler)
+    
+    return logger
 
-# Setup logging
-def setup_logging(log_file=None):
-    """Configure logging for the project."""
-    handlers = [logging.StreamHandler()]
+# Create default logger
+logger = setup_logging('rbs_analysis.log')
+
+# Function to load environment-specific configuration
+def load_env_config() -> Dict[str, Any]:
+    """
+    Load environment-specific configuration from JSON file
     
-    if log_file:
-        log_path = os.path.join(LOGS_DIR, log_file)
-        handlers.append(logging.FileHandler(log_path))
+    Returns:
+        dict: Configuration settings
+    """
+    config_file = os.path.join(ROOT_DIR, f'config_{ENVIRONMENT}.json')
     
-    logging.basicConfig(
-        level=LOG_LEVEL,
-        format=LOG_FORMAT,
-        datefmt=LOG_DATE_FORMAT,
-        handlers=handlers
-    )
+    if os.path.exists(config_file):
+        try:
+            with open(config_file, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            logger.warning(f"Error loading config file {config_file}: {e}")
+            logger.warning("Using default configuration.")
+    else:
+        logger.info(f"No environment-specific config file found at {config_file}.")
+        logger.info("Using default configuration.")
     
-    # Reduce verbosity of matplotlib and other libraries
-    logging.getLogger('matplotlib').setLevel(logging.WARNING)
-    logging.getLogger('PIL').setLevel(logging.WARNING)
+    return {}
+
+# Load environment-specific configuration
+ENV_CONFIG = load_env_config()
+
+# Override defaults with environment-specific settings
+for key, value in ENV_CONFIG.items():
+    if key in globals():
+        globals()[key] = value
+    else:
+        logger.warning(f"Unknown configuration key in environment config: {key}")
+
+# GPU configuration
+# This will be replaced with proper environment variable by main.py
+USE_GPU = os.environ.get('USE_GPU', '').lower() == 'true'
+
+def user_config_path(config_name: str = 'user_config.json') -> str:
+    """
+    Get the path to a user configuration file
     
-    return logging.getLogger('rbs_analysis') 
+    Args:
+        config_name: Name of the configuration file
+        
+    Returns:
+        str: Full path to the configuration file
+    """
+    return os.path.join(ROOT_DIR, config_name)
+
+def save_user_config(config: Dict[str, Any], config_name: str = 'user_config.json') -> bool:
+    """
+    Save user configuration to file
+    
+    Args:
+        config: Configuration dictionary to save
+        config_name: Name of the configuration file
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        config_path = user_config_path(config_name)
+        with open(config_path, 'w') as f:
+            json.dump(config, f, indent=2)
+        return True
+    except Exception as e:
+        logger.error(f"Error saving user configuration: {e}")
+        return False
+
+def load_user_config(config_name: str = 'user_config.json') -> Dict[str, Any]:
+    """
+    Load user configuration from file
+    
+    Args:
+        config_name: Name of the configuration file
+        
+    Returns:
+        dict: User configuration settings
+    """
+    config_path = user_config_path(config_name)
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            logger.warning(f"Error loading user config file {config_path}: {e}")
+    
+    return {}
+
+# Function to get configuration value with fallback
+def get_config(key: str, default: Any = None) -> Any:
+    """
+    Get a configuration value with fallback to default
+    
+    Args:
+        key: Configuration key
+        default: Default value if key is not found
+        
+    Returns:
+        Any: Configuration value
+    """
+    # First check user config
+    user_cfg = load_user_config()
+    if key in user_cfg:
+        return user_cfg[key]
+    
+    # Then check environment config
+    if key in ENV_CONFIG:
+        return ENV_CONFIG[key]
+    
+    # Then check globals
+    if key in globals():
+        return globals()[key]
+    
+    # Finally use provided default
+    return default
+
+def print_config_summary():
+    """Print a summary of the configuration settings"""
+    print("\n=== RBS Analysis Configuration ===")
+    print(f"Environment: {ENVIRONMENT}")
+    print(f"Root directory: {ROOT_DIR}")
+    print(f"Data directory: {DATA_DIR}")
+    print(f"Results directory: {RESULTS_DIR}")
+    print(f"Log directory: {LOG_DIR}")
+    print(f"GPU acceleration enabled: {USE_GPU}")
+    print(f"Cache enabled: {CACHE_ENABLED}")
+    print("==================================\n")
+
+if __name__ == "__main__":
+    # If run directly, print configuration summary
+    print_config_summary()
+    
+    # And save a default user config if it doesn't exist
+    if not os.path.exists(user_config_path()):
+        default_user_config = {
+            "DEFAULT_REGION_BBOX": DEFAULT_REGION_BBOX,
+            "USE_GPU": USE_GPU,
+            "CACHE_ENABLED": CACHE_ENABLED
+        }
+        save_user_config(default_user_config)
+        print(f"Default user configuration saved to {user_config_path()}") 

@@ -35,14 +35,30 @@ graphviz>=0.20.0
 fpdf>=1.7.0
 openpyxl>=3.0.0
 
-# Graph Neural Networks (optional, but required for some advanced features)
+# Graph Neural Networks (required for advanced graph features)
 torch>=1.10.0
 torch-geometric>=2.0.0
 
-# Testing
+# GPU acceleration (optional)
+cupy-cuda11x>=11.0.0; platform_system != "Windows"  # For CUDA 11.x, adjust for your CUDA version
+cuspatial>=23.02.00; platform_system != "Windows"  # For GPU-accelerated spatial operations
+
+# Performance and progress monitoring
+tqdm>=4.62.0  # Progress bars
+psutil>=5.9.0  # System resource monitoring
+memory-profiler>=0.60.0  # Memory usage profiling
+
+# Testing and quality
 pytest>=6.0.0
 pytest-cov>=2.0.0
+pylint>=2.15.0
+black>=22.10.0
 
 # Miscellaneous
 tzdata  # Timezone database
-xmltodict  # XML parsing 
+xmltodict  # XML parsing
+
+# Dependency management
+setuptools>=65.0.0
+wheel>=0.38.0
+pip>=22.0.0 
