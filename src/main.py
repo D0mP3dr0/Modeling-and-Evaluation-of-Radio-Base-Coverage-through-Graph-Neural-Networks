@@ -26,6 +26,10 @@ try:
     from dashboard_interactive import run_dashboard
     from report_generator import run_report_generation
     from unit_tests import run_tests
+    from advanced_coverage_visualization import run_advanced_coverage_visualization
+    from coverage_quality_analysis import run_coverage_quality_analysis
+    from coverage_prediction import run_coverage_prediction
+    from advanced_graph_analysis import run_advanced_graph_analysis
 except ImportError:
     # Fallback for direct execution from project root
     from src.data_processing import load_and_process_data
@@ -42,6 +46,10 @@ except ImportError:
     from src.dashboard_interactive import run_dashboard
     from src.report_generator import run_report_generation
     from src.unit_tests import run_tests
+    from src.advanced_coverage_visualization import run_advanced_coverage_visualization
+    from src.coverage_quality_analysis import run_coverage_quality_analysis
+    from src.coverage_prediction import run_coverage_prediction
+    from src.advanced_graph_analysis import run_advanced_graph_analysis
 
 def parse_arguments():
     """
@@ -87,10 +95,20 @@ def parse_arguments():
                        help='Generate comprehensive report')
     parser.add_argument('--test', action='store_true',
                        help='Run unit tests')
+    parser.add_argument('--advanced-coverage', '-ac', action='store_true',
+                      help='Run advanced coverage visualization')
+    parser.add_argument('--coverage-quality', '-cq', action='store_true',
+                      help='Run coverage quality analysis')
+    parser.add_argument('--coverage-prediction', '-cp', action='store_true',
+                      help='Run coverage prediction')
+    parser.add_argument('--advanced-graph', '-ag', action='store_true',
+                      help='Run advanced graph analysis')
     
     # Additional options
     parser.add_argument('--debug', action='store_true',
                        help='Enable debug mode')
+    parser.add_argument('--time-field', type=str,
+                      help='Field name containing timestamp for temporal analyses')
     
     return parser.parse_args()
 
@@ -116,7 +134,9 @@ def main():
                 if not any([args.all, args.basic, args.visualization, args.graph, 
                           args.coverage, args.tech_frequency, args.temporal,
                           args.correlation, args.spatial, args.integration,
-                          args.prediction, args.dashboard, args.report]):
+                          args.prediction, args.dashboard, args.report,
+                          args.advanced_coverage, args.coverage_quality, 
+                          args.coverage_prediction, args.advanced_graph]):
                     sys.exit(0)
         
         # Load and process data
@@ -207,31 +227,70 @@ def main():
             except Exception as e:
                 print(f"Error in prediction analysis: {e}")
         
+        if args.all or args.advanced_coverage:
+            print("Running advanced coverage visualization...")
+            try:
+                advanced_coverage_dir = os.path.join(results_dir, 'advanced_coverage')
+                os.makedirs(advanced_coverage_dir, exist_ok=True)
+                run_advanced_coverage_visualization(gdf_rbs, advanced_coverage_dir)
+                print(f"Advanced coverage visualizations saved to {advanced_coverage_dir}")
+            except Exception as e:
+                print(f"Error in advanced coverage visualization: {e}")
+        
+        if args.all or args.coverage_quality:
+            print("Running coverage quality analysis...")
+            try:
+                coverage_quality_dir = os.path.join(results_dir, 'coverage_quality')
+                os.makedirs(coverage_quality_dir, exist_ok=True)
+                run_coverage_quality_analysis(gdf_rbs, coverage_quality_dir)
+                print(f"Coverage quality analysis saved to {coverage_quality_dir}")
+            except Exception as e:
+                print(f"Error in coverage quality analysis: {e}")
+        
+        if args.all or args.coverage_prediction:
+            print("Running coverage prediction...")
+            try:
+                coverage_prediction_dir = os.path.join(results_dir, 'coverage_prediction')
+                os.makedirs(coverage_prediction_dir, exist_ok=True)
+                run_coverage_prediction(gdf_rbs, coverage_prediction_dir)
+                print(f"Coverage prediction results saved to {coverage_prediction_dir}")
+            except Exception as e:
+                print(f"Error in coverage prediction: {e}")
+        
+        if args.all or args.advanced_graph:
+            print("Running advanced graph analysis...")
+            try:
+                advanced_graph_dir = os.path.join(results_dir, 'advanced_graph')
+                os.makedirs(advanced_graph_dir, exist_ok=True)
+                run_advanced_graph_analysis(gdf_rbs, advanced_graph_dir, args.time_field)
+                print(f"Advanced graph analysis saved to {advanced_graph_dir}")
+            except Exception as e:
+                print(f"Error in advanced graph analysis: {e}")
+        
+        if args.all or args.dashboard:
+            print("Running interactive dashboard...")
+            try:
+                dashboard_path = run_dashboard(gdf_rbs, results_dir)
+                print(f"Interactive dashboard saved to {dashboard_path}")
+            except Exception as e:
+                print(f"Error in dashboard generation: {e}")
+        
         if args.all or args.report:
             print("Generating comprehensive report...")
             try:
-                reports_dir = os.path.join(results_dir, 'reports')
-                os.makedirs(reports_dir, exist_ok=True)
-                pdf_path, excel_path = run_report_generation(gdf_rbs, reports_dir)
-                print(f"Reports generated at:\n  - PDF: {pdf_path}\n  - Excel: {excel_path}")
+                report_path = run_report_generation(gdf_rbs, results_dir)
+                print(f"Report generated at {report_path}")
             except Exception as e:
                 print(f"Error in report generation: {e}")
         
-        if args.dashboard:
-            print("Starting interactive dashboard...")
-            try:
-                run_dashboard(gdf_rbs, debug=args.debug)
-            except Exception as e:
-                print(f"Error in dashboard: {e}")
-        
-        print(f"All analyses completed. Results saved to {results_dir}")
+        print(f"Analysis completed. Results saved to {results_dir}")
     
+    except KeyboardInterrupt:
+        print("Analysis interrupted by user.")
+        sys.exit(1)
     except Exception as e:
         print(f"Unexpected error: {e}")
-        return 1
-    
-    return 0
+        sys.exit(1)
 
 if __name__ == "__main__":
-    exit_code = main()
-    sys.exit(exit_code) 
+    main() 
