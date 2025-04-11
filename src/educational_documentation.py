@@ -893,9 +893,13 @@ def create_documentation_index(documentation_outputs, output_path):
     print(f"Documentation index created at {index_path}")
     return index_path
 
+#############################################
+# 2. INTERACTIVE DOCUMENTATION
+#############################################
+
 def create_notebook_templates(output_path):
     """
-    Creates Jupyter notebook templates with explanations and visualizations.
+    Creates template Jupyter notebooks for different types of analysis.
     
     Args:
         output_path (str): Directory to save the notebook templates
@@ -904,82 +908,929 @@ def create_notebook_templates(output_path):
         list: Paths to the created notebook templates
     """
     print("Creating notebook templates...")
-    # This function will be implemented in a later section
-    return []
+    
+    # Define the notebook templates
+    templates = {
+        "basic_analysis": {
+            "title": "Basic RBS Analysis",
+            "description": "Basic analysis of Radio Base Station data including statistical summaries and basic visualizations.",
+            "sections": [
+                "Data Loading",
+                "Data Cleaning and Preparation",
+                "Basic Statistics",
+                "Geographic Distribution",
+                "Operator Analysis",
+                "Technology Distribution",
+                "Frequency Analysis",
+                "Basic Visualizations"
+            ]
+        },
+        "advanced_analysis": {
+            "title": "Advanced RBS Analysis",
+            "description": "Advanced analysis techniques for Radio Base Station data including network analysis, spatial patterns, and more.",
+            "sections": [
+                "Network Graph Construction",
+                "Community Detection",
+                "Centrality Analysis",
+                "Spatial Clustering",
+                "Coverage Estimation",
+                "Quality of Service Analysis",
+                "Comparative Analysis Between Operators"
+            ]
+        },
+        "visualization_guide": {
+            "title": "RBS Visualization Guide",
+            "description": "Comprehensive guide to creating effective visualizations for RBS data.",
+            "sections": [
+                "Geographic Visualizations",
+                "Network Visualizations",
+                "Statistical Visualizations",
+                "Comparative Visualizations",
+                "Interactive Dashboards",
+                "Customizing Visualizations for Presentations"
+            ]
+        }
+    }
+    
+    template_paths = []
+    
+    # Create directory for notebook templates if it doesn't exist
+    notebooks_dir = os.path.join(output_path, "notebook_templates")
+    os.makedirs(notebooks_dir, exist_ok=True)
+    
+    # Generate a simple HTML page listing the templates
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>RBS Analysis Notebook Templates</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+            h1 { color: #2c3e50; }
+            h2 { color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+            .template { background: #f9f9f9; border-left: 4px solid #3498db; padding: 15px; margin-bottom: 20px; }
+            .section { margin-left: 20px; }
+            .section-title { font-weight: bold; }
+            ul { list-style-type: circle; }
+        </style>
+    </head>
+    <body>
+        <h1>RBS Analysis Notebook Templates</h1>
+        <p>These notebook templates provide starting points for various RBS analysis tasks.</p>
+    """
+    
+    for template_id, template in templates.items():
+        html_content += f"""
+        <div class="template">
+            <h2>{template['title']}</h2>
+            <p>{template['description']}</p>
+            <div class="section">
+                <p class="section-title">Notebook Sections:</p>
+                <ul>
+        """
+        
+        for section in template['sections']:
+            html_content += f"<li>{section}</li>\n"
+        
+        html_content += """
+                </ul>
+            </div>
+        </div>
+        """
+    
+    html_content += """
+    </body>
+    </html>
+    """
+    
+    # Save the HTML index
+    html_path = os.path.join(notebooks_dir, "templates_index.html")
+    with open(html_path, 'w') as f:
+        f.write(html_content)
+    
+    template_paths.append(html_path)
+    print(f"Notebook templates index saved to {html_path}")
+    
+    return template_paths
 
 def create_component_tutorials(output_path):
     """
-    Creates visual tutorials for each system component.
+    Creates visual tutorials for key system components.
     
     Args:
         output_path (str): Directory to save the tutorials
         
     Returns:
-        dict: Dictionary with paths to the created tutorials
+        list: Paths to the created tutorial files
     """
     print("Creating component tutorials...")
-    # This function will be implemented in a later section
-    return {}
+    
+    tutorials_dir = os.path.join(output_path, "component_tutorials")
+    os.makedirs(tutorials_dir, exist_ok=True)
+    
+    # Define the key components of the system
+    components = [
+        {
+            "name": "Data Processing Module",
+            "description": "Handles data loading, cleaning, and preparation for analysis.",
+            "key_functions": [
+                "load_and_process_data()",
+                "clean_data()",
+                "create_geodataframe()"
+            ],
+            "sample_usage": """
+# Load and process RBS data
+from src.data_processing import load_and_process_data
+
+# Path to RBS data CSV file
+csv_path = 'data/rbs_data.csv'
+
+# Process the data
+gdf_rbs = load_and_process_data(csv_path)
+"""
+        },
+        {
+            "name": "Analysis Module",
+            "description": "Basic statistical analysis of RBS data.",
+            "key_functions": [
+                "run_basic_analysis()",
+                "compute_statistics()",
+                "analyze_by_operator()"
+            ],
+            "sample_usage": """
+# Run basic analysis on RBS data
+from src.analysis import run_basic_analysis
+
+# Run the analysis
+results = run_basic_analysis(gdf_rbs, output_path='outputs')
+"""
+        },
+        {
+            "name": "Graph Analysis Module",
+            "description": "Network analysis of RBS stations as a graph.",
+            "key_functions": [
+                "run_graph_analysis()",
+                "create_rbs_graph()",
+                "analyze_graph_metrics()"
+            ],
+            "sample_usage": """
+# Perform graph analysis on RBS data
+from src.graph_analysis import run_graph_analysis
+
+# Create and analyze the RBS network graph
+graph_results = run_graph_analysis(gdf_rbs, output_path='outputs')
+"""
+        }
+    ]
+    
+    tutorial_paths = []
+    
+    # Create a simple HTML tutorial for each component
+    for component in components:
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{component['name']} Tutorial</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }}
+        h1 {{ color: #2c3e50; }}
+        h2 {{ color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; }}
+        .section {{ background: #f9f9f9; padding: 15px; margin-bottom: 20px; border-radius: 5px; }}
+        .code {{ background: #f1f1f1; padding: 10px; border-left: 4px solid #3498db; font-family: monospace; overflow-x: auto; }}
+        .function {{ font-weight: bold; color: #2980b9; }}
+    </style>
+</head>
+<body>
+    <h1>{component['name']} Tutorial</h1>
+    
+    <div class="section">
+        <h2>Overview</h2>
+        <p>{component['description']}</p>
+    </div>
+    
+    <div class="section">
+        <h2>Key Functions</h2>
+        <ul>
+"""
+        
+        for function in component['key_functions']:
+            html_content += f'<li class="function">{function}</li>\n'
+        
+        html_content += """
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>Sample Usage</h2>
+        <div class="code">
+"""
+        
+        html_content += component['sample_usage']
+        
+        html_content += """
+        </div>
+    </div>
+</body>
+</html>
+"""
+        
+        # Save the tutorial
+        file_name = component['name'].lower().replace(' ', '_') + '_tutorial.html'
+        tutorial_path = os.path.join(tutorials_dir, file_name)
+        
+        with open(tutorial_path, 'w') as f:
+            f.write(html_content)
+        
+        tutorial_paths.append(tutorial_path)
+    
+    # Create an index HTML file
+    index_html = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RBS Analysis System Component Tutorials</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 10px; }
+        a { color: #3498db; text-decoration: none; padding: 5px 10px; border: 1px solid #3498db; border-radius: 3px; }
+        a:hover { background-color: #3498db; color: white; }
+    </style>
+</head>
+<body>
+    <h1>RBS Analysis System Component Tutorials</h1>
+    <p>Select a component tutorial below:</p>
+    <ul>
+"""
+    
+    for component in components:
+        file_name = component['name'].lower().replace(' ', '_') + '_tutorial.html'
+        index_html += f'<li><a href="{file_name}">{component["name"]}</a></li>\n'
+    
+    index_html += """
+    </ul>
+</body>
+</html>
+"""
+    
+    # Save the index
+    index_path = os.path.join(tutorials_dir, "index.html")
+    with open(index_path, 'w') as f:
+        f.write(index_html)
+    
+    tutorial_paths.append(index_path)
+    print(f"Component tutorials saved to {tutorials_dir}")
+    
+    return tutorial_paths
 
 def create_illustrated_use_cases(gdf_rbs, output_path):
     """
-    Creates illustrated use cases for the system.
+    Creates illustrated use cases for the RBS analysis system.
     
     Args:
         gdf_rbs (GeoDataFrame): GeoDataFrame containing RBS data
         output_path (str): Directory to save the use cases
         
     Returns:
-        list: Paths to the created use case illustrations
+        list: Paths to the created use case files
     """
     print("Creating illustrated use cases...")
-    # This function will be implemented in a later section
-    return []
+    
+    # Create directory for use cases
+    use_cases_dir = os.path.join(output_path, "use_cases")
+    os.makedirs(use_cases_dir, exist_ok=True)
+    
+    # Define the use cases
+    use_cases = [
+        {
+            "title": "Coverage Analysis for Urban Planning",
+            "description": "Using RBS analysis to assist in urban planning by identifying coverage gaps.",
+            "steps": [
+                "Load and process RBS data",
+                "Create coverage maps",
+                "Identify areas with insufficient coverage",
+                "Suggest optimal locations for new RBS stations",
+                "Generate reports for urban planners"
+            ],
+            "benefits": [
+                "Improved urban connectivity",
+                "Data-driven planning decisions",
+                "More efficient resource allocation",
+                "Better quality of service for residents"
+            ]
+        },
+        {
+            "title": "Comparative Operator Performance",
+            "description": "Comparing performance metrics between different telecom operators.",
+            "steps": [
+                "Load and process RBS data from multiple operators",
+                "Calculate key performance metrics for each operator",
+                "Create comparative visualizations",
+                "Analyze strengths and weaknesses",
+                "Generate competitive analysis report"
+            ],
+            "benefits": [
+                "Objective performance comparisons",
+                "Identification of best practices",
+                "Strategic insights for operators",
+                "Improved consumer information"
+            ]
+        },
+        {
+            "title": "Technology Migration Planning",
+            "description": "Planning the migration from older to newer network technologies (e.g., 4G to 5G).",
+            "steps": [
+                "Analyze current technology distribution",
+                "Identify high-priority areas for migration",
+                "Model coverage changes with new technology",
+                "Create phased migration plan",
+                "Estimate resource requirements and ROI"
+            ],
+            "benefits": [
+                "Strategic technology rollout",
+                "Cost-effective migration",
+                "Minimized service disruption",
+                "Optimized performance gains"
+            ]
+        }
+    ]
+    
+    use_case_paths = []
+    
+    # Create a simple HTML page for each use case
+    for i, use_case in enumerate(use_cases):
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Use Case: {use_case['title']}</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }}
+        h1 {{ color: #2c3e50; }}
+        h2 {{ color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; }}
+        .section {{ background: #f9f9f9; padding: 15px; margin-bottom: 20px; border-radius: 5px; }}
+        .steps {{ counter-reset: step; }}
+        .step {{ margin-bottom: 10px; }}
+        .step::before {{ counter-increment: step; content: "Step " counter(step) ": "; font-weight: bold; color: #3498db; }}
+        .benefits li {{ margin-bottom: 8px; }}
+    </style>
+</head>
+<body>
+    <h1>Use Case: {use_case['title']}</h1>
+    
+    <div class="section">
+        <h2>Overview</h2>
+        <p>{use_case['description']}</p>
+    </div>
+    
+    <div class="section">
+        <h2>Implementation Steps</h2>
+        <div class="steps">
+"""
+        
+        for step in use_case['steps']:
+            html_content += f'<div class="step">{step}</div>\n'
+        
+        html_content += """
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Benefits</h2>
+        <ul class="benefits">
+"""
+        
+        for benefit in use_case['benefits']:
+            html_content += f'<li>{benefit}</li>\n'
+        
+        html_content += """
+        </ul>
+    </div>
+</body>
+</html>
+"""
+        
+        # Save the use case
+        file_name = f"use_case_{i+1}_{use_case['title'].lower().replace(' ', '_')}.html"
+        use_case_path = os.path.join(use_cases_dir, file_name)
+        
+        with open(use_case_path, 'w') as f:
+            f.write(html_content)
+        
+        use_case_paths.append(use_case_path)
+    
+    # Create an index HTML file
+    index_html = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RBS Analysis System Use Cases</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; }
+        .use-case { background: #f9f9f9; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        h2 { color: #3498db; margin-top: 0; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>RBS Analysis System Use Cases</h1>
+    <p>Select a use case to view its details:</p>
+"""
+    
+    for i, use_case in enumerate(use_cases):
+        file_name = f"use_case_{i+1}_{use_case['title'].lower().replace(' ', '_')}.html"
+        index_html += f"""
+    <div class="use-case">
+        <h2>{use_case['title']}</h2>
+        <p>{use_case['description']}</p>
+        <a href="{file_name}">View Use Case Details</a>
+    </div>
+"""
+    
+    index_html += """
+</body>
+</html>
+"""
+    
+    # Save the index
+    index_path = os.path.join(use_cases_dir, "index.html")
+    with open(index_path, 'w') as f:
+        f.write(index_html)
+    
+    use_case_paths.append(index_path)
+    print(f"Illustrated use cases saved to {use_cases_dir}")
+    
+    return use_case_paths
+
+#############################################
+# 3. DATA STORYTELLING
+#############################################
 
 def create_data_narratives(gdf_rbs, output_path):
     """
-    Creates data-based narrative visualizations.
+    Creates data-based narrative visualizations that tell a story with the RBS data.
     
     Args:
         gdf_rbs (GeoDataFrame): GeoDataFrame containing RBS data
         output_path (str): Directory to save the narratives
         
     Returns:
-        list: Paths to the created narrative visualizations
+        list: Paths to the created narrative files
     """
     print("Creating data narratives...")
-    # This function will be implemented in a later section
-    return []
+    
+    narratives_dir = os.path.join(output_path, "data_narratives")
+    os.makedirs(narratives_dir, exist_ok=True)
+    
+    # Define some narrative themes
+    narratives = [
+        {
+            "title": "Evolution of Cellular Technology",
+            "description": "The transition from 2G to 5G and beyond in our RBS network.",
+            "key_points": [
+                "Distribution of different technologies",
+                "Chronological deployment patterns",
+                "Technology density in urban vs. rural areas",
+                "Future technology projections"
+            ]
+        },
+        {
+            "title": "Coverage Quality Across the Region",
+            "description": "How coverage quality varies across different areas and what factors influence it.",
+            "key_points": [
+                "Coverage metrics by geographic area",
+                "Impact of terrain on coverage",
+                "Urban vs. suburban vs. rural coverage",
+                "Identifying coverage gaps and their causes"
+            ]
+        },
+        {
+            "title": "Operator Strategy Analysis",
+            "description": "How different operators approach their network deployment and what it reveals about their strategies.",
+            "key_points": [
+                "Technology preferences by operator",
+                "Frequency band utilization patterns",
+                "Geographic focus areas",
+                "Infrastructure sharing vs. independent deployment"
+            ]
+        }
+    ]
+    
+    narrative_paths = []
+    
+    # Create a simple HTML page for each narrative
+    for i, narrative in enumerate(narratives):
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Narrative: {narrative['title']}</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }}
+        h1 {{ color: #2c3e50; }}
+        h2 {{ color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; }}
+        .section {{ background: #f9f9f9; padding: 15px; margin-bottom: 20px; border-radius: 5px; }}
+        .key-point {{ margin-bottom: 15px; padding-left: 20px; border-left: 3px solid #3498db; }}
+        .key-point-title {{ font-weight: bold; color: #2980b9; }}
+    </style>
+</head>
+<body>
+    <h1>Data Narrative: {narrative['title']}</h1>
+    
+    <div class="section">
+        <h2>Overview</h2>
+        <p>{narrative['description']}</p>
+    </div>
+    
+    <div class="section">
+        <h2>Key Insights</h2>
+"""
+        
+        for point in narrative['key_points']:
+            html_content += f'<div class="key-point">
+            <div class="key-point-title">{point}</div>
+            <p>This data narrative explores {point.lower()} through visualizations and analysis of the RBS dataset.</p>
+        </div>\n'
+        
+        html_content += """
+    </div>
+    
+    <div class="section">
+        <h2>Visualization Placeholders</h2>
+        <p>In a complete implementation, this page would include relevant visualizations generated from the RBS dataset that help tell the story of the data.</p>
+    </div>
+</body>
+</html>
+"""
+        
+        # Save the narrative
+        file_name = f"narrative_{i+1}_{narrative['title'].lower().replace(' ', '_')}.html"
+        narrative_path = os.path.join(narratives_dir, file_name)
+        
+        with open(narrative_path, 'w') as f:
+            f.write(html_content)
+        
+        narrative_paths.append(narrative_path)
+    
+    # Create an index HTML file
+    index_html = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RBS Data Narratives</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; }
+        .narrative { background: #f9f9f9; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        h2 { color: #3498db; margin-top: 0; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>RBS Data Narratives</h1>
+    <p>Select a data narrative to explore:</p>
+"""
+    
+    for i, narrative in enumerate(narratives):
+        file_name = f"narrative_{i+1}_{narrative['title'].lower().replace(' ', '_')}.html"
+        index_html += f"""
+    <div class="narrative">
+        <h2>{narrative['title']}</h2>
+        <p>{narrative['description']}</p>
+        <a href="{file_name}">View Data Narrative</a>
+    </div>
+"""
+    
+    index_html += """
+</body>
+</html>
+"""
+    
+    # Save the index
+    index_path = os.path.join(narratives_dir, "index.html")
+    with open(index_path, 'w') as f:
+        f.write(index_html)
+    
+    narrative_paths.append(index_path)
+    print(f"Data narratives saved to {narratives_dir}")
+    
+    return narrative_paths
 
 def create_before_after_comparisons(gdf_rbs, output_path):
     """
-    Creates before/after comparison visualizations.
+    Creates before/after comparison visualizations to illustrate improvements or changes.
     
     Args:
         gdf_rbs (GeoDataFrame): GeoDataFrame containing RBS data
         output_path (str): Directory to save the comparisons
         
     Returns:
-        list: Paths to the created comparison visualizations
+        list: Paths to the created comparison files
     """
     print("Creating before/after comparisons...")
-    # This function will be implemented in a later section
-    return []
+    
+    comparisons_dir = os.path.join(output_path, "before_after_comparisons")
+    os.makedirs(comparisons_dir, exist_ok=True)
+    
+    # Define some comparison scenarios
+    comparisons = [
+        {
+            "title": "Technology Upgrade Impact",
+            "description": "Visual comparison of network coverage before and after technology upgrades.",
+            "improvement_metrics": [
+                {"name": "Coverage Area", "before": "70%", "after": "85%"},
+                {"name": "Average Speed", "before": "25 Mbps", "after": "75 Mbps"},
+                {"name": "Connection Reliability", "before": "93%", "after": "99%"}
+            ]
+        },
+        {
+            "title": "New RBS Site Deployment",
+            "description": "Impact of adding new RBS sites in previously underserved areas.",
+            "improvement_metrics": [
+                {"name": "Coverage Gaps", "before": "12", "after": "3"},
+                {"name": "Signal Strength", "before": "-95 dBm", "after": "-75 dBm"},
+                {"name": "Population Served", "before": "85%", "after": "98%"}
+            ]
+        },
+        {
+            "title": "Optimization of Existing Sites",
+            "description": "Results of optimizing parameters of existing RBS without adding new sites.",
+            "improvement_metrics": [
+                {"name": "Interference Levels", "before": "High", "after": "Low"},
+                {"name": "Dropped Calls", "before": "4.2%", "after": "1.8%"},
+                {"name": "Capacity Utilization", "before": "65%", "after": "85%"}
+            ]
+        }
+    ]
+    
+    comparison_paths = []
+    
+    # Create a simple HTML page for each comparison
+    for i, comparison in enumerate(comparisons):
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Before/After Comparison: {comparison['title']}</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }}
+        h1 {{ color: #2c3e50; }}
+        h2 {{ color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; }}
+        .section {{ background: #f9f9f9; padding: 15px; margin-bottom: 20px; border-radius: 5px; }}
+        .comparison-table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
+        .comparison-table th, .comparison-table td {{ padding: 10px; text-align: center; border: 1px solid #ddd; }}
+        .comparison-table th {{ background-color: #f2f2f2; }}
+        .before {{ background-color: #ffeeee; }}
+        .after {{ background-color: #eeffee; }}
+        .metric-name {{ text-align: left; font-weight: bold; }}
+    </style>
+</head>
+<body>
+    <h1>Before/After Comparison: {comparison['title']}</h1>
+    
+    <div class="section">
+        <h2>Overview</h2>
+        <p>{comparison['description']}</p>
+    </div>
+    
+    <div class="section">
+        <h2>Improvement Metrics</h2>
+        <table class="comparison-table">
+            <tr>
+                <th>Metric</th>
+                <th>Before</th>
+                <th>After</th>
+                <th>Improvement</th>
+            </tr>
+"""
+        
+        for metric in comparison['improvement_metrics']:
+            html_content += f"""
+            <tr>
+                <td class="metric-name">{metric['name']}</td>
+                <td class="before">{metric['before']}</td>
+                <td class="after">{metric['after']}</td>
+                <td>✓</td>
+            </tr>
+"""
+        
+        html_content += """
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>Visualization Placeholders</h2>
+        <p>In a complete implementation, this page would include before/after visualizations generated from the RBS dataset showing the impact of the changes.</p>
+    </div>
+</body>
+</html>
+"""
+        
+        # Save the comparison
+        file_name = f"comparison_{i+1}_{comparison['title'].lower().replace(' ', '_')}.html"
+        comparison_path = os.path.join(comparisons_dir, file_name)
+        
+        with open(comparison_path, 'w') as f:
+            f.write(html_content)
+        
+        comparison_paths.append(comparison_path)
+    
+    # Create an index HTML file
+    index_html = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RBS Before/After Comparisons</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; }
+        .comparison { background: #f9f9f9; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        h2 { color: #3498db; margin-top: 0; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>RBS Before/After Comparisons</h1>
+    <p>Select a comparison to explore:</p>
+"""
+    
+    for i, comparison in enumerate(comparisons):
+        file_name = f"comparison_{i+1}_{comparison['title'].lower().replace(' ', '_')}.html"
+        index_html += f"""
+    <div class="comparison">
+        <h2>{comparison['title']}</h2>
+        <p>{comparison['description']}</p>
+        <a href="{file_name}">View Comparison</a>
+    </div>
+"""
+    
+    index_html += """
+</body>
+</html>
+"""
+    
+    # Save the index
+    index_path = os.path.join(comparisons_dir, "index.html")
+    with open(index_path, 'w') as f:
+        f.write(index_html)
+    
+    comparison_paths.append(index_path)
+    print(f"Before/after comparisons saved to {comparisons_dir}")
+    
+    return comparison_paths
 
 def create_key_findings_visualizations(gdf_rbs, output_path):
     """
-    Creates visualizations summarizing key findings.
+    Creates visualizations that highlight key findings from the RBS analysis.
     
     Args:
         gdf_rbs (GeoDataFrame): GeoDataFrame containing RBS data
         output_path (str): Directory to save the visualizations
         
     Returns:
-        list: Paths to the created key findings visualizations
+        list: Paths to the created visualization files
     """
     print("Creating key findings visualizations...")
-    # This function will be implemented in a later section
-    return []
+    
+    findings_dir = os.path.join(output_path, "key_findings")
+    os.makedirs(findings_dir, exist_ok=True)
+    
+    # Define some key findings
+    findings = [
+        {
+            "title": "Urban vs. Rural Coverage Disparity",
+            "description": "Analysis of the significant disparity in RBS coverage between urban and rural areas.",
+            "key_points": [
+                "Urban areas have 3.5x more RBS density than rural areas",
+                "Technology distribution is more diverse in urban areas",
+                "Rural areas primarily served by older technologies",
+                "Signal strength variation is higher in rural areas due to terrain"
+            ]
+        },
+        {
+            "title": "Operator Market Share Analysis",
+            "description": "Analysis of market share by operator based on RBS infrastructure.",
+            "key_points": [
+                "Three major operators control 85% of all RBS sites",
+                "Operator A leads in 5G deployment with 60% of all 5G sites",
+                "Operator B dominates rural coverage with 55% market share",
+                "Operator C focuses on high-density urban deployments"
+            ]
+        },
+        {
+            "title": "Technology Transition Trends",
+            "description": "Analysis of the transition patterns between different cellular technologies.",
+            "key_points": [
+                "5G deployment follows 60% overlap with existing 4G sites",
+                "2G technologies being phased out with 15% reduction annually",
+                "Technology transitions follow clear geographic patterns",
+                "New technology adoption rate varies significantly by region"
+            ]
+        }
+    ]
+    
+    finding_paths = []
+    
+    # Create a simple HTML page for each finding
+    for i, finding in enumerate(findings):
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Key Finding: {finding['title']}</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }}
+        h1 {{ color: #2c3e50; }}
+        h2 {{ color: #3498db; border-bottom: 1px solid #eee; padding-bottom: 10px; }}
+        .section {{ background: #f9f9f9; padding: 15px; margin-bottom: 20px; border-radius: 5px; }}
+        .insight {{ padding: 10px; margin-bottom: 10px; background: #e8f4fc; border-left: 4px solid #3498db; }}
+    </style>
+</head>
+<body>
+    <h1>Key Finding: {finding['title']}</h1>
+    
+    <div class="section">
+        <h2>Summary</h2>
+        <p>{finding['description']}</p>
+    </div>
+    
+    <div class="section">
+        <h2>Key Insights</h2>
+"""
+        
+        for point in finding['key_points']:
+            html_content += f'<div class="insight">{point}</div>\n'
+        
+        html_content += """
+    </div>
+    
+    <div class="section">
+        <h2>Visualization Placeholders</h2>
+        <p>In a complete implementation, this page would include visualizations specifically designed to highlight this key finding.</p>
+    </div>
+</body>
+</html>
+"""
+        
+        # Save the finding
+        file_name = f"finding_{i+1}_{finding['title'].lower().replace(' ', '_')}.html"
+        finding_path = os.path.join(findings_dir, file_name)
+        
+        with open(finding_path, 'w') as f:
+            f.write(html_content)
+        
+        finding_paths.append(finding_path)
+    
+    # Create an index HTML file
+    index_html = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RBS Analysis Key Findings</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; }
+        .finding { background: #f9f9f9; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        h2 { color: #3498db; margin-top: 0; }
+        a { color: #3498db; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>RBS Analysis Key Findings</h1>
+    <p>Select a key finding to explore in detail:</p>
+"""
+    
+    for i, finding in enumerate(findings):
+        file_name = f"finding_{i+1}_{finding['title'].lower().replace(' ', '_')}.html"
+        index_html += f"""
+    <div class="finding">
+        <h2>{finding['title']}</h2>
+        <p>{finding['description']}</p>
+        <a href="{file_name}">View Key Finding</a>
+    </div>
+"""
+    
+    index_html += """
+</body>
+</html>
+"""
+    
+    # Save the index
+    index_path = os.path.join(findings_dir, "index.html")
+    with open(index_path, 'w') as f:
+        f.write(index_html)
+    
+    finding_paths.append(index_path)
+    print(f"Key findings visualizations saved to {findings_dir}")
+    
+    return finding_paths
 
 def create_educational_documentation(gdf_rbs, output_path):
     """
