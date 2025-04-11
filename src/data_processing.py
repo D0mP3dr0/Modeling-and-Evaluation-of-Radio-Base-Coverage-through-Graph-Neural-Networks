@@ -1,18 +1,18 @@
 import pandas as pd
 
 def load_and_clean_data(input_path: str, output_path: str) -> pd.DataFrame | None:
-    """Carrega o CSV de licenciamento, remove colunas desnecessárias e salva o resultado."""
+    """Loads the licensing CSV, removes unnecessary columns and saves the result."""
     
     try:
         df = pd.read_csv(input_path, encoding='utf-8')
     except FileNotFoundError:
-        print(f"Erro: Arquivo de entrada não encontrado em {input_path}")
+        print(f"Error: Input file not found at {input_path}")
         return None
     except Exception as e:
-        print(f"Erro ao ler o CSV de entrada: {e}")
+        print(f"Error reading input CSV: {e}")
         return None
 
-    colunas_para_excluir = [
+    columns_to_exclude = [
         'NumFistel', 'NumServico', 'NumAto', 'CodDebitoTFI', '_id',
         'NumFistelAssociado', 'NumRede', 'NumEstacao',
         'DataLicenciamento', 'DataPrimeiroLicenciamento', 'DataValidade',
@@ -22,21 +22,21 @@ def load_and_clean_data(input_path: str, output_path: str) -> pd.DataFrame | Non
         'FrenteCostaAntena', 'AnguloMeiaPotenciaAntena'
     ]
 
-    colunas_existentes = [col for col in colunas_para_excluir if col in df.columns]
-    colunas_nao_encontradas = set(colunas_para_excluir) - set(colunas_existentes)
+    existing_columns = [col for col in columns_to_exclude if col in df.columns]
+    columns_not_found = set(columns_to_exclude) - set(existing_columns)
 
-    if colunas_nao_encontradas:
-        print(f"Aviso: As seguintes colunas não foram encontradas e não serão excluídas: {colunas_nao_encontradas}")
+    if columns_not_found:
+        print(f"Warning: The following columns were not found and will not be excluded: {columns_not_found}")
 
-    df_filtrado = df.drop(columns=colunas_existentes)
+    filtered_df = df.drop(columns=existing_columns)
 
     try:
-        df_filtrado.to_csv(output_path, index=False, encoding='utf-8')
-        print(f"Arquivo limpo salvo com sucesso em {output_path}")
-        print(f"Colunas mantidas: {list(df_filtrado.columns)}")
-        print(f"Número de ERBs no dataset: {len(df_filtrado)}")
+        filtered_df.to_csv(output_path, index=False, encoding='utf-8')
+        print(f"Clean file successfully saved to {output_path}")
+        print(f"Retained columns: {list(filtered_df.columns)}")
+        print(f"Number of RBS in the dataset: {len(filtered_df)}")
     except Exception as e:
-        print(f"Erro ao salvar o CSV de saída: {e}")
+        print(f"Error saving output CSV: {e}")
         return None
         
-    return df_filtrado
+    return filtered_df

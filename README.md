@@ -1,136 +1,136 @@
-# Modelagem e Avaliação de Cobertura de Estações Rádio Base Através de GNN
+# Modeling and Evaluation of Radio Base Station Coverage Through GNN
 
-Este projeto realiza análises avançadas de Estações Rádio Base (ERBs), desde a exploração de dados, 
-processamento de cobertura, visualizações geoespaciais, até modelagem de grafos e redes neurais
-para análise da conectividade entre as estações.
+This project performs advanced analysis of Radio Base Stations (RBS), from data exploration,
+coverage processing, geospatial visualizations, to graph modeling and neural networks
+for analyzing connectivity between stations.
 
-## Visão Geral
+## Overview
 
-O projeto aborda o problema de análise e modelagem de cobertura de ERBs utilizando dados da Anatel,
-com foco especial na área de Sorocaba-SP. Ele implementa:
+The project addresses the problem of RBS coverage analysis and modeling using Anatel data,
+with special focus on the Sorocaba-SP area. It implements:
 
-1. **Processamento de Dados**: Limpeza e transformação dos dados brutos da Anatel.
-2. **Modelagem de Cobertura**: Cálculo de EIRP, raio de cobertura e criação de geometrias de setores.
-3. **Visualizações Geoespaciais**: Mapas interativos e estáticos de cobertura, sobreposição e heatmaps.
-4. **Análise de Grafos**: Modelagem das ERBs como nós de um grafo, com arestas representando conectividade.
-5. **Preparação para GNN**: Transformação em formato compatível com PyTorch Geometric para análises avançadas via GNN.
+1. **Data Processing**: Cleaning and transformation of raw Anatel data.
+2. **Coverage Modeling**: Calculation of EIRP, coverage radius and creation of sector geometries.
+3. **Geospatial Visualizations**: Interactive and static maps of coverage, overlap and heatmaps.
+4. **Graph Analysis**: Modeling RBS as nodes in a graph, with edges representing connectivity.
+5. **GNN Preparation**: Transformation into PyTorch Geometric compatible format for advanced analysis via GNN.
 
-## Estrutura do Projeto
+## Project Structure
 
 ```
 projeto_erb/
-├── data/                  # Dados brutos e processados
-│   └── README.md          # Instruções sobre os dados necessários
-├── results/               # Resultados gerados (mapas, gráficos, métricas)
-├── src/                   # Código fonte modularizado
-│   ├── __init__.py        # Arquivo de inicialização do pacote
-│   ├── analysis.py        # Funções de análise exploratória básica
-│   ├── coverage_models.py # Modelos de cálculo de cobertura
-│   ├── data_processing.py # Funções de processamento de dados
-│   ├── graph_analysis.py  # Funções para análise de grafos e GNN
-│   └── visualization.py   # Funções para visualizações avançadas
-├── main.py                # Script principal para executar o fluxo completo
-├── requirements.txt       # Dependências Python
-└── README.md              # Este arquivo
+├── data/                  # Raw and processed data
+│   └── README.md          # Instructions about required data
+├── results/               # Generated results (maps, charts, metrics)
+├── src/                   # Modularized source code
+│   ├── __init__.py        # Package initialization file
+│   ├── analysis.py        # Basic exploratory analysis functions
+│   ├── coverage_models.py # Coverage calculation models
+│   ├── data_processing.py # Data processing functions
+│   ├── graph_analysis.py  # Functions for graph analysis and GNN
+│   └── visualization.py   # Functions for advanced visualizations
+├── main.py                # Main script to execute the complete flow
+├── requirements.txt       # Python dependencies
+└── README.md              # This file
 ```
 
-## Funcionalidades
+## Features
 
-### 1. Processamento de Dados
-- Limpeza de dados brutos da Anatel
-- Filtragem para região de interesse
-- Normalização de operadoras (Claro, Vivo, TIM, Oi)
-- Preenchimento inteligente de valores ausentes
+### 1. Data Processing
+- Cleaning of raw Anatel data
+- Filtering for region of interest
+- Normalization of operators (Claro, Vivo, TIM, Oi)
+- Intelligent filling of missing values
 
-### 2. Modelagem de Cobertura
-- Cálculo de EIRP (Potência Efetivamente Irradiada)
-- Cálculo de raios de cobertura baseados em frequência, potência e ambiente
-- Geração de setores de cobertura (polígonos) para cada ERB
-- Classificação do tipo de área (urbana, suburbana, rural)
+### 2. Coverage Modeling
+- Calculation of EIRP (Effective Isotropic Radiated Power)
+- Calculation of coverage radii based on frequency, power and environment
+- Generation of coverage sectors (polygons) for each RBS
+- Classification of area type (urban, suburban, rural)
 
-### 3. Visualizações Avançadas
-- Mapa de posicionamento das ERBs por operadora
-- Mapas de cobertura por operadora
-- Mapa de sobreposição de coberturas
-- Mapa de calor de potência EIRP
-- Mapa interativo folium para navegação dinâmica
+### 3. Advanced Visualizations
+- RBS positioning map by operator
+- Coverage maps by operator
+- Coverage overlap map
+- EIRP power heat map
+- Interactive folium map for dynamic navigation
 
-### 4. Análise de Grafos
-- Construção de grafos de conectividade entre ERBs
-- Cálculo de métricas de rede (centralidade, clustering, etc.)
-- Visualização de grafos por operadora e centralidade
-- Geração de grafo baseado em diagrama de Voronoi
+### 4. Graph Analysis
+- Construction of connectivity graphs between RBS
+- Calculation of network metrics (centrality, clustering, etc.)
+- Graph visualization by operator and centrality
+- Graph generation based on Voronoi diagram
 
-### 5. Preparação para GNN
-- Conversão para formato PyTorch Geometric
-- Definição de features para nós (potência, ganho, etc.)
-- Definição de features para arestas (distância, sobreposição)
-- Estruturação para aplicação futura de GNN
+### 5. GNN Preparation
+- Conversion to PyTorch Geometric format
+- Definition of node features (power, gain, etc.)
+- Definition of edge features (distance, overlap)
+- Structuring for future GNN application
 
-## Como Usar
+## How to Use
 
-### Pré-requisitos
+### Prerequisites
 - Python 3.8+
-- Dependências listadas em `requirements.txt`
-- Arquivo CSV de licenciamento da Anatel (não incluído devido ao tamanho)
+- Dependencies listed in `requirements.txt`
+- Anatel licensing CSV file (not included due to size)
 
-### Configuração
+### Setup
 
-1. **Clone o repositório:**
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/D0mP3dr0/Modeling-and-Evaluation-of-Radio-Base-Coverage-through-Graph-Neural-Networks.git
    cd projeto_erb
    ```
 
-2. **Crie um ambiente virtual:**
+2. **Create a virtual environment:**
    ```bash
    python -m venv venv
    source venv/bin/activate  # Linux/macOS
-   # ou
+   # or
    # venv\Scripts\activate    # Windows
    ```
 
-3. **Instale as dependências:**
+3. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Adicione os dados:**
-   - Coloque o arquivo CSV de licenciamento da Anatel na pasta `data/`.
-   - Renomeie para `csv_licenciamento_bruto.csv` ou ajuste o caminho em `main.py`.
+4. **Add data:**
+   - Place the Anatel licensing CSV file in the `data/` folder.
+   - Rename to `csv_licenciamento_bruto.csv` or adjust the path in `main.py`.
 
-### Execução
+### Execution
 
-Para executar o projeto completo:
+To run the complete project:
 ```bash
 python main.py
 ```
 
-O script processa todas as etapas sequencialmente e salva os resultados na pasta `results/`.
+The script processes all steps sequentially and saves the results in the `results/` folder.
 
-### Resultados Gerados
+### Generated Results
 
-- **Estatísticas:** Métricas sobre ERBs e grafos
-- **Mapas Estáticos:** Visualizações em PNG de alta resolução na pasta `results/`
-- **Mapas Interativos:** Arquivo HTML com mapa interativo Folium
-- **Grafos:** Visualizações de grafos de conectividade e Voronoi
+- **Statistics:** Metrics about RBS and graphs
+- **Static Maps:** High-resolution PNG visualizations in the `results/` folder
+- **Interactive Maps:** HTML file with interactive Folium map
+- **Graphs:** Visualizations of connectivity and Voronoi graphs
 
-## Dependências Principais
+## Main Dependencies
 
-- **Análise de Dados:** pandas, numpy
-- **Geoespacial:** geopandas, shapely, folium
-- **Visualização:** matplotlib, seaborn, contextily
-- **Grafos:** networkx, scipy
-- **GNN:** torch, torch-geometric (opcional)
+- **Data Analysis:** pandas, numpy
+- **Geospatial:** geopandas, shapely, folium
+- **Visualization:** matplotlib, seaborn, contextily
+- **Graphs:** networkx, scipy
+- **GNN:** torch, torch-geometric (optional)
 
-## Notas de Implementação
+## Implementation Notes
 
-- O código está estruturado para ser modular e extensível.
-- Funções detalhadas de documentação explicam os parâmetros e retornos.
-- O sistema pode operar mesmo com dados parciais.
-- A implementação de GNN requer PyTorch e PyTorch Geometric, mas as outras funcionalidades continuam operacionais sem eles.
+- The code is structured to be modular and extensible.
+- Detailed documentation functions explain parameters and returns.
+- The system can operate even with partial data.
+- GNN implementation requires PyTorch and PyTorch Geometric, but other functionalities remain operational without them.
 
-## Autores e Contribuições
+## Authors and Contributions
 
-- **Desenvolvimento:** D0mP3dr0
-- **Contribuições:** PRs são bem-vindos!
+- **Development:** D0mP3dr0
+- **Contributions:** PRs are welcome!

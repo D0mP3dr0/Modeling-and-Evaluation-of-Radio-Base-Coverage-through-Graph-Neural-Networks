@@ -5,123 +5,123 @@ from shapely.geometry import Point
 import matplotlib.pyplot as plt
 
 from src.data_processing import load_and_clean_data
-from src.analysis import setup_visualization_options, analise_exploratoria_erbs
+from src.analysis import setup_visualization_options, exploratory_analysis_rbs
 from src.coverage_models import (
-    calcular_eirp, calcular_raio_cobertura_aprimorado, calcular_area_cobertura,
-    criar_setor_preciso, calcular_tipo_area
+    calculate_eirp, calculate_improved_coverage_radius, calculate_coverage_area,
+    create_precise_sector, estimate_area_type
 )
 from src.visualization import (
-    configurar_estilo_visualizacao, criar_mapa_posicionamento, 
-    criar_mapa_cobertura_por_operadora, criar_mapa_sobreposicao,
-    criar_mapa_calor_potencia, criar_mapa_folium
+    configure_visualization_style, create_positioning_map, 
+    create_coverage_map_by_operator, create_overlap_map,
+    create_heat_map_power, create_folium_map
 )
 from src.graph_analysis import (
-    criar_grafo_erb, calcular_metricas_grafo, visualizar_grafo,
-    criar_grafo_voronoi_erb, converter_para_pyg
+    create_rbs_graph, calculate_graph_metrics, visualize_graph,
+    create_voronoi_rbs_graph, convert_to_pyg
 )
 
-# --- Configuração --- 
-# Defina os caminhos aqui. Use caminhos relativos para melhor portabilidade.
-INPUT_CSV_PATH = "data/csv_licenciamento_bruto.csv"  # Substitua pelo caminho real do arquivo
-OUTPUT_CSV_PATH = "data/erb_sorocaba_limpo.csv"
+# --- Configuration --- 
+# Define paths here. Use relative paths for better portability.
+INPUT_CSV_PATH = "data/csv_licenciamento_bruto.csv"  # Replace with the real file path
+OUTPUT_CSV_PATH = "data/erb_sorocaba_clean.csv"
 RESULTS_DIR = "results"
 
-# Cria os diretórios se não existirem
+# Create directories if they don't exist
 for directory in [RESULTS_DIR, "data"]:
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-# --- Etapa 1: Carregar e Limpar os Dados --- 
-def etapa_1_carregamento():
+# --- Step 1: Load and Clean Data --- 
+def step_1_loading():
     print("\n" + "="*80)
-    print("ETAPA 1: CARREGAMENTO E LIMPEZA DE DADOS")
+    print("STEP 1: DATA LOADING AND CLEANING")
     print("="*80 + "\n")
     
-    print(f"Carregando dados brutos de: {INPUT_CSV_PATH}")
+    print(f"Loading raw data from: {INPUT_CSV_PATH}")
     if not os.path.exists(INPUT_CSV_PATH):
-        print(f"AVISO: Arquivo {INPUT_CSV_PATH} não encontrado.")
-        print("Você precisa adicionar o arquivo CSV original na pasta 'data'.")
-        print("Pulando esta etapa.")
+        print(f"WARNING: File {INPUT_CSV_PATH} not found.")
+        print("You need to add the original CSV file in the 'data' folder.")
+        print("Skipping this step.")
         
-        # Para fins de teste, tente usar arquivo já processado
+        # For testing purposes, try to use already processed file
         if os.path.exists(OUTPUT_CSV_PATH):
-            print(f"Encontrado arquivo limpo existente: {OUTPUT_CSV_PATH}")
+            print(f"Found existing clean file: {OUTPUT_CSV_PATH}")
             df = pd.read_csv(OUTPUT_CSV_PATH)
-            print(f"Carregados {len(df)} registros.")
+            print(f"Loaded {len(df)} records.")
             return df
         else:
-            print("Nenhum arquivo de dados encontrado. Encerrando.")
+            print("No data file found. Terminating.")
             return None
     
-    df_limpo = load_and_clean_data(INPUT_CSV_PATH, OUTPUT_CSV_PATH)
-    return df_limpo
+    clean_df = load_and_clean_data(INPUT_CSV_PATH, OUTPUT_CSV_PATH)
+    return clean_df
 
-# --- Etapa 2: Análise Exploratória --- 
-def etapa_2_analise_exploratoria(df):
+# --- Step 2: Exploratory Analysis --- 
+def step_2_exploratory_analysis(df):
     if df is None or df.empty:
-        print("Sem dados para análise exploratória. Pulando etapa.")
+        print("No data for exploratory analysis. Skipping step.")
         return df
     
     print("\n" + "="*80)
-    print("ETAPA 2: ANÁLISE EXPLORATÓRIA DE DADOS")
+    print("STEP 2: EXPLORATORY DATA ANALYSIS")
     print("="*80 + "\n")
     
-    # Configura as opções de visualização antes de chamar a análise
+    # Set up visualization options before calling the analysis
     setup_visualization_options() 
     
-    # Chama a função de análise, passando o DataFrame limpo e o diretório de resultados
-    analise_exploratoria_erbs(df, RESULTS_DIR)
+    # Call the analysis function, passing the clean DataFrame and the results directory
+    exploratory_analysis_rbs(df, RESULTS_DIR)
     
     return df
 
-# --- Etapa 3: Processamento de Cobertura --- 
-def etapa_3_processamento_cobertura(df):
+# --- Step 3: Coverage Processing --- 
+def step_3_coverage_processing(df):
     if df is None or df.empty:
-        print("Sem dados para processamento de cobertura. Pulando etapa.")
+        print("No data for coverage processing. Skipping step.")
         return None, None
     
     print("\n" + "="*80)
-    print("ETAPA 3: PROCESSAMENTO DE COBERTURA DE SINAL")
+    print("STEP 3: SIGNAL COVERAGE PROCESSING")
     print("="*80 + "\n")
     
-    # Configurar estilo visual
-    configurar_estilo_visualizacao()
+    # Configure visual style
+    configure_visualization_style()
     
-    # Copiar dataframe para não modificar o original
-    df_cobertura = df.copy()
+    # Copy dataframe to avoid modifying the original
+    df_coverage = df.copy()
     
-    # Converter tipos de dados
-    print("Convertendo tipos de dados...")
-    colunas_numericas = ['PotenciaTransmissorWatts', 'FreqTxMHz', 'GanhoAntena', 'Azimute']
-    for coluna in colunas_numericas:
-        if coluna in df_cobertura.columns:
-            df_cobertura[coluna] = pd.to_numeric(df_cobertura[coluna], errors='coerce')
+    # Convert data types
+    print("Converting data types...")
+    numeric_columns = ['PotenciaTransmissorWatts', 'FreqTxMHz', 'GanhoAntena', 'Azimute']
+    for column in numeric_columns:
+        if column in df_coverage.columns:
+            df_coverage[column] = pd.to_numeric(df_coverage[column], errors='coerce')
     
-    # Filtrar para região de Sorocaba e principais operadoras
-    print("Filtrando dados para região de interesse...")
+    # Filter for Sorocaba region and main operators
+    print("Filtering data for region of interest...")
     
-    # Verificar se temos coordenadas
-    if 'Latitude' not in df_cobertura.columns or 'Longitude' not in df_cobertura.columns:
-        print("ERRO: Dados não contêm coordenadas (Latitude/Longitude). Impossível continuar.")
+    # Check if we have coordinates
+    if 'Latitude' not in df_coverage.columns or 'Longitude' not in df_coverage.columns:
+        print("ERROR: Data does not contain coordinates (Latitude/Longitude). Unable to continue.")
         return None, None
     
-    # Definir região para filtrar (bbox de Sorocaba)
+    # Define region to filter (Sorocaba bbox)
     sorocaba_bbox = [-23.60, -23.30, -47.65, -47.25]  # [lat_min, lat_max, lon_min, lon_max]
     
-    # Filtrar por região
-    df_cobertura = df_cobertura[
-        (df_cobertura['Latitude'] >= sorocaba_bbox[0]) &
-        (df_cobertura['Latitude'] <= sorocaba_bbox[1]) &
-        (df_cobertura['Longitude'] >= sorocaba_bbox[2]) &
-        (df_cobertura['Longitude'] <= sorocaba_bbox[3])
+    # Filter by region
+    df_coverage = df_coverage[
+        (df_coverage['Latitude'] >= sorocaba_bbox[0]) &
+        (df_coverage['Latitude'] <= sorocaba_bbox[1]) &
+        (df_coverage['Longitude'] >= sorocaba_bbox[2]) &
+        (df_coverage['Longitude'] <= sorocaba_bbox[3])
     ]
     
-    # Normalizar nomes de operadoras (se a coluna existir)
-    if 'NomeEntidade' in df_cobertura.columns:
-        print("Padronizando nomes de operadoras...")
+    # Normalize operator names (if the column exists)
+    if 'NomeEntidade' in df_coverage.columns:
+        print("Standardizing operator names...")
         
-        # Mapeamento para nomes padronizados
-        mapeamento_operadoras = {
+        # Mapping to standardized names
+        operator_mapping = {
             'CLARO': 'CLARO',
             'CLARO S.A.': 'CLARO',
             'OI': 'OI',
@@ -132,257 +132,226 @@ def etapa_3_processamento_cobertura(df):
             'TIM S.A.': 'TIM'
         }
         
-        # Função para mapear operadora
-        def mapear_operadora(nome):
-            for padrao, padronizado in mapeamento_operadoras.items():
-                if padrao in nome.upper():
-                    return padronizado
-            return "OUTRA"
+        # Function to map operator
+        def map_operator(name):
+            for pattern, standardized in operator_mapping.items():
+                if pattern in name.upper():
+                    return standardized
+            return "OTHER"
         
-        # Criar coluna Operadora
-        df_cobertura['Operadora'] = df_cobertura['NomeEntidade'].apply(mapear_operadora)
+        # Create Operator column
+        df_coverage['Operator'] = df_coverage['NomeEntidade'].apply(map_operator)
         
-        # Filtrar principais operadoras
-        df_cobertura = df_cobertura[df_cobertura['Operadora'].isin(['CLARO', 'OI', 'VIVO', 'TIM'])]
+        # Filter main operators
+        df_coverage = df_coverage[df_coverage['Operator'].isin(['CLARO', 'OI', 'VIVO', 'TIM'])]
     
-    print(f"Após filtragem: {len(df_cobertura)} ERBs na região de interesse")
+    print(f"After filtering: {len(df_coverage)} RBS in the region of interest")
     
-    # Preencher valores ausentes
-    print("Preenchendo valores ausentes...")
+    # Fill missing values
+    print("Filling missing values...")
     
-    # Potência
-    if 'PotenciaTransmissorWatts' in df_cobertura.columns:
-        media_potencia = df_cobertura['PotenciaTransmissorWatts'].median()
-        if pd.isna(media_potencia) or media_potencia <= 0:
-            media_potencia = 20.0
-        df_cobertura.loc[pd.isna(df_cobertura['PotenciaTransmissorWatts']) | 
-                         (df_cobertura['PotenciaTransmissorWatts'] <= 0), 
-                         'PotenciaTransmissorWatts'] = media_potencia
+    # Power
+    if 'PotenciaTransmissorWatts' in df_coverage.columns:
+        median_power = df_coverage['PotenciaTransmissorWatts'].median()
+        if pd.isna(median_power) or median_power <= 0:
+            median_power = 20.0
+        df_coverage.loc[pd.isna(df_coverage['PotenciaTransmissorWatts']) | 
+                         (df_coverage['PotenciaTransmissorWatts'] <= 0), 
+                         'PotenciaTransmissorWatts'] = median_power
     else:
-        df_cobertura['PotenciaTransmissorWatts'] = 20.0  # Valor padrão
+        df_coverage['PotenciaTransmissorWatts'] = 20.0  # Default value
     
-    # Ganho
-    if 'GanhoAntena' in df_cobertura.columns:
-        media_ganho = df_cobertura['GanhoAntena'].median()
-        if pd.isna(media_ganho) or media_ganho <= 0:
-            media_ganho = 16.0
-        df_cobertura.loc[pd.isna(df_cobertura['GanhoAntena']) | 
-                         (df_cobertura['GanhoAntena'] <= 0), 
-                         'GanhoAntena'] = media_ganho
+    # Gain
+    if 'GanhoAntena' in df_coverage.columns:
+        median_gain = df_coverage['GanhoAntena'].median()
+        if pd.isna(median_gain) or median_gain <= 0:
+            median_gain = 16.0
+        df_coverage.loc[pd.isna(df_coverage['GanhoAntena']) | 
+                         (df_coverage['GanhoAntena'] <= 0), 
+                         'GanhoAntena'] = median_gain
     else:
-        df_cobertura['GanhoAntena'] = 16.0  # Valor padrão
+        df_coverage['GanhoAntena'] = 16.0  # Default value
     
-    # Frequência
-    if 'FreqTxMHz' in df_cobertura.columns:
-        media_freq = df_cobertura['FreqTxMHz'].median()
-        if pd.isna(media_freq) or media_freq <= 0:
-            media_freq = 850.0
-        df_cobertura.loc[pd.isna(df_cobertura['FreqTxMHz']) | 
-                         (df_cobertura['FreqTxMHz'] <= 0), 
-                         'FreqTxMHz'] = media_freq
+    # Frequency
+    if 'FreqTxMHz' in df_coverage.columns:
+        median_freq = df_coverage['FreqTxMHz'].median()
+        if pd.isna(median_freq) or median_freq <= 0:
+            median_freq = 850.0
+        df_coverage.loc[pd.isna(df_coverage['FreqTxMHz']) | 
+                         (df_coverage['FreqTxMHz'] <= 0), 
+                         'FreqTxMHz'] = median_freq
     else:
-        df_cobertura['FreqTxMHz'] = 850.0  # Valor padrão
+        df_coverage['FreqTxMHz'] = 850.0  # Default value
     
-    # Azimute
-    if 'Azimute' not in df_cobertura.columns or df_cobertura['Azimute'].isna().sum() > 0:
-        print("Gerando azimutes aleatórios para valores ausentes...")
-        if 'Azimute' not in df_cobertura.columns:
-            df_cobertura['Azimute'] = 0
+    # Azimuth
+    if 'Azimute' not in df_coverage.columns or df_coverage['Azimute'].isna().sum() > 0:
+        print("Generating random azimuths for missing values...")
+        if 'Azimute' not in df_coverage.columns:
+            df_coverage['Azimute'] = 0
         
-        # Preencher valores ausentes de azimute com 0, 120, 240 (padrão para 3 setores)
-        azimutes_padrao = [0, 120, 240]
-        for i, row in df_cobertura[df_cobertura['Azimute'].isna()].iterrows():
-            df_cobertura.loc[i, 'Azimute'] = azimutes_padrao[i % len(azimutes_padrao)]
+        # Fill missing azimuth values with 0, 120, 240 (standard for 3 sectors)
+        default_azimuths = [0, 120, 240]
+        for i, row in df_coverage[df_coverage['Azimute'].isna()].iterrows():
+            df_coverage.loc[i, 'Azimute'] = default_azimuths[i % len(default_azimuths)]
     
-    # Transformar os dados para GeoDataFrame
-    print("Convertendo para GeoDataFrame...")
-    geometria = [Point(xy) for xy in zip(df_cobertura['Longitude'], df_cobertura['Latitude'])]
-    gdf_erb = gpd.GeoDataFrame(df_cobertura, geometry=geometria, crs="EPSG:4326")
+    # Transform data to GeoDataFrame
+    print("Converting to GeoDataFrame...")
+    geometry = [Point(xy) for xy in zip(df_coverage['Longitude'], df_coverage['Latitude'])]
+    gdf_rbs = gpd.GeoDataFrame(df_coverage, geometry=geometry, crs="EPSG:4326")
     
-    # Calcular tipo de área com base na densidade de ERBs
-    print("Calculando tipo de área (urbana, suburbana, rural)...")
-    gdf_erb = calcular_tipo_area(gdf_erb, raio=0.01)
+    # Calculate area type based on RBS density
+    print("Calculating area type (urban, suburban, rural)...")
+    gdf_rbs = estimate_area_type(gdf_rbs, radius=0.01)
     
-    # Calcular EIRP (Potência Efetivamente Irradiada)
-    print("Calculando EIRP (Potência Efetivamente Irradiada)...")
-    gdf_erb['EIRP_dBm'] = gdf_erb.apply(
-        lambda row: calcular_eirp(row['PotenciaTransmissorWatts'], row['GanhoAntena']), 
+    # Calculate EIRP (Effective Isotropic Radiated Power)
+    print("Calculating EIRP (Effective Isotropic Radiated Power)...")
+    gdf_rbs['EIRP_dBm'] = gdf_rbs.apply(
+        lambda row: calculate_eirp(row['PotenciaTransmissorWatts'], row['GanhoAntena']), 
         axis=1
     )
     
-    # Calcular raio de cobertura
-    print("Calculando raio de cobertura...")
-    gdf_erb['Raio_Cobertura_km'] = gdf_erb.apply(
-        lambda row: calcular_raio_cobertura_aprimorado(
-            row['EIRP_dBm'], row['FreqTxMHz'], row['tipo_area']
+    # Calculate coverage radius
+    print("Calculating coverage radius...")
+    gdf_rbs['Coverage_Radius_km'] = gdf_rbs.apply(
+        lambda row: calculate_improved_coverage_radius(
+            row['EIRP_dBm'], row['FreqTxMHz'], row['area_type']
         ), 
         axis=1
     )
     
-    # Calcular área de cobertura
-    print("Calculando área de cobertura...")
-    gdf_erb['Area_Cobertura_km2'] = gdf_erb.apply(
-        lambda row: calcular_area_cobertura(row['Raio_Cobertura_km']), 
+    # Calculate coverage area
+    print("Calculating coverage area...")
+    gdf_rbs['Coverage_Area_km2'] = gdf_rbs.apply(
+        lambda row: calculate_coverage_area(row['Coverage_Radius_km']), 
         axis=1
     )
     
-    # Criar geometrias dos setores
-    print("Criando geometrias de setores de cobertura...")
-    gdf_erb['setor_geometria'] = gdf_erb.apply(
-        lambda row: criar_setor_preciso(
+    # Create sector geometries
+    print("Creating coverage sector geometries...")
+    gdf_rbs['sector_geometry'] = gdf_rbs.apply(
+        lambda row: create_precise_sector(
             row['Latitude'], row['Longitude'], 
-            row['Raio_Cobertura_km'], row['Azimute']
+            row['Coverage_Radius_km'], row['Azimute']
         ), 
         axis=1
     )
     
-    # Criar GeoDataFrame apenas com setores
-    gdf_setores = gpd.GeoDataFrame(
-        gdf_erb[['Operadora', 'EIRP_dBm', 'Raio_Cobertura_km', 'Area_Cobertura_km2', 'tipo_area']],
-        geometry=gdf_erb['setor_geometria'],
+    # Create GeoDataFrame with just sectors
+    gdf_sectors = gpd.GeoDataFrame(
+        gdf_rbs[['Operator', 'EIRP_dBm', 'Coverage_Radius_km', 'Coverage_Area_km2', 'area_type']],
+        geometry=gdf_rbs['sector_geometry'],
         crs="EPSG:4326"
     ).dropna(subset=['geometry'])
     
-    print(f"Processamento concluído: {len(gdf_erb)} ERBs e {len(gdf_setores)} setores de cobertura.")
+    print(f"Processing completed: {len(gdf_rbs)} RBS and {len(gdf_sectors)} coverage sectors.")
     
-    return gdf_erb, gdf_setores
+    return gdf_rbs, gdf_sectors
 
-# --- Etapa 4: Visualizações Avançadas --- 
-def etapa_4_visualizacoes(gdf_erb, gdf_setores):
-    if gdf_erb is None or gdf_erb.empty:
-        print("Sem dados para visualizações avançadas. Pulando etapa.")
+# --- Step 4: Advanced Visualizations --- 
+def step_4_advanced_visualizations(gdf_rbs, gdf_sectors):
+    if gdf_rbs is None or gdf_rbs.empty:
+        print("No data for advanced visualizations. Skipping step.")
         return
     
     print("\n" + "="*80)
-    print("ETAPA 4: VISUALIZAÇÕES AVANÇADAS")
+    print("STEP 4: ADVANCED VISUALIZATIONS")
     print("="*80 + "\n")
     
-    # Criar mapa de posicionamento das ERBs
-    print("\n4.1. Mapa de posicionamento das ERBs")
-    mapa_posicionamento = os.path.join(RESULTS_DIR, "mapa_posicionamento_erbs.png")
-    criar_mapa_posicionamento(gdf_erb, mapa_posicionamento)
+    # Create positioning map of RBS
+    print("\n4.1. RBS Positioning Map")
+    positioning_map = os.path.join(RESULTS_DIR, "positioning_map_rbs.png")
+    create_positioning_map(gdf_rbs, positioning_map)
     
-    # Criar mapa de cobertura por operadora
-    if gdf_setores is not None and not gdf_setores.empty:
-        print("\n4.2. Mapa de cobertura por operadora")
-        mapa_cobertura = os.path.join(RESULTS_DIR, "mapa_cobertura_por_operadora.png")
-        criar_mapa_cobertura_por_operadora(gdf_erb, gdf_setores, mapa_cobertura)
+    # Create coverage map by operator
+    if gdf_sectors is not None and not gdf_sectors.empty:
+        print("\n4.2. Coverage Map by Operator")
+        coverage_map = os.path.join(RESULTS_DIR, "coverage_map_by_operator.png")
+        create_coverage_map_by_operator(gdf_rbs, gdf_sectors, coverage_map)
         
-        print("\n4.3. Mapa de sobreposição de cobertura")
-        mapa_sobreposicao = os.path.join(RESULTS_DIR, "mapa_sobreposicao_cobertura.png")
-        criar_mapa_sobreposicao(gdf_erb, gdf_setores, mapa_sobreposicao)
+        print("\n4.3. Overlap Map")
+        overlap_map = os.path.join(RESULTS_DIR, "overlap_map.png")
+        create_overlap_map(gdf_rbs, gdf_sectors, overlap_map)
     
-    # Criar mapa de calor de potência
-    print("\n4.4. Mapa de calor de potência EIRP")
-    mapa_calor = os.path.join(RESULTS_DIR, "mapa_calor_potencia.png")
-    criar_mapa_calor_potencia(gdf_erb, mapa_calor)
+    # Create heat map of power
+    print("\n4.4. Heat Map of EIRP Power")
+    heat_map = os.path.join(RESULTS_DIR, "heat_map_power.png")
+    create_heat_map_power(gdf_rbs, heat_map)
     
-    # Criar mapa interativo Folium
-    print("\n4.5. Mapa interativo Folium")
-    mapa_folium = os.path.join(RESULTS_DIR, "mapa_interativo_erbs.html")
-    criar_mapa_folium(gdf_erb, mapa_folium)
+    # Create interactive Folium map
+    print("\n4.5. Interactive Folium Map")
+    folium_map = os.path.join(RESULTS_DIR, "interactive_rbs_map.html")
+    create_folium_map(gdf_rbs, folium_map)
     
-    print("\nTodas as visualizações foram geradas com sucesso.")
+    print("\nAll visualizations generated successfully.")
 
-# --- Etapa 5: Análise de Grafos --- 
-def etapa_5_analise_grafos(gdf_erb):
-    if gdf_erb is None or gdf_erb.empty:
-        print("Sem dados para análise de grafos. Pulando etapa.")
+# --- Step 5: Graph Analysis --- 
+def step_5_graph_analysis(gdf_rbs):
+    if gdf_rbs is None or gdf_rbs.empty:
+        print("No data for graph analysis. Skipping step.")
         return
     
     print("\n" + "="*80)
-    print("ETAPA 5: ANÁLISE DE GRAFOS E REDES")
+    print("STEP 5: GRAPH ANALYSIS AND NETWORKS")
     print("="*80 + "\n")
     
-    # Criar grafo de conectividade
-    print("\n5.1. Criando grafo de conectividade...")
-    grafo = criar_grafo_erb(gdf_erb, raio_conexao=2.0, ponderado=True)
+    # Create connectivity graph
+    print("\n5.1. Creating connectivity graph...")
+    graph = create_rbs_graph(gdf_rbs, connection_radius=2.0, weighted=True)
     
-    # Calcular métricas do grafo
-    print("\n5.2. Calculando métricas do grafo...")
-    metricas = calcular_metricas_grafo(grafo)
+    # Calculate metrics
+    print("\n5.2. Calculating graph metrics...")
+    metrics = calculate_graph_metrics(graph)
     
-    # Mostrar métricas
-    print("\nMétricas do grafo de ERBs:")
-    for metrica, valor in metricas.items():
-        print(f"  - {metrica}: {valor:.4f}" if isinstance(valor, float) else f"  - {metrica}: {valor}")
+    # Print metrics
+    print("\nConnectivity Graph Metrics:")
+    print("-" * 40)
+    for metric, value in metrics.items():
+        print(f"{metric}: {value}")
     
-    # Salvar métricas em arquivo texto
-    metricas_path = os.path.join(RESULTS_DIR, "metricas_grafo.txt")
-    with open(metricas_path, 'w') as f:
-        f.write("MÉTRICAS DO GRAFO DE ERBS\n")
-        f.write("=========================\n\n")
-        for metrica, valor in metricas.items():
-            f.write(f"{metrica}: {valor}\n")
-    print(f"Métricas salvas em: {metricas_path}")
+    # Create visualization
+    print("\n5.3. Creating graph visualization...")
+    graph_viz_path = os.path.join(RESULTS_DIR, "rbs_connectivity_graph.png")
+    visualize_graph(graph, graph_viz_path, title="RBS Connectivity Graph", by_operator=True)
     
-    # Visualizar grafo
-    print("\n5.3. Criando visualização do grafo...")
-    grafo_viz_path = os.path.join(RESULTS_DIR, "grafo_conectividade_erbs.png")
-    visualizar_grafo(grafo, grafo_viz_path, 
-                    titulo="Grafo de Conectividade entre ERBs",
-                    por_operadora=True)
+    # Create Voronoi diagram
+    print("\n5.4. Creating Voronoi diagram...")
+    voronoi_path = os.path.join(RESULTS_DIR, "rbs_voronoi_diagram.png")
+    voronoi_graph = create_voronoi_rbs_graph(gdf_rbs, voronoi_path)
     
-    # Visualizar grafo colorido por centralidade
-    grafo_central_path = os.path.join(RESULTS_DIR, "grafo_centralidade_erbs.png")
-    visualizar_grafo(grafo, grafo_central_path, 
-                    titulo="Centralidade de Intermediação no Grafo de ERBs",
-                    por_operadora=False)
+    # Create PyG Data object if PyTorch is available
+    print("\n5.5. Converting to PyTorch Geometric format...")
+    pyg_data = convert_to_pyg(graph)
+    if pyg_data is not None:
+        print(f"PyG data created with {pyg_data.num_nodes} nodes and {pyg_data.num_edges} edges.")
     
-    # Criar grafo Voronoi
-    print("\n5.4. Criando grafo baseado em diagrama de Voronoi...")
-    voronoi_path = os.path.join(RESULTS_DIR, "grafo_voronoi_erbs.png")
-    grafo_voronoi = criar_grafo_voronoi_erb(gdf_erb, voronoi_path)
-    
-    # Calcular métricas para grafo Voronoi
-    print("\n5.5. Calculando métricas do grafo Voronoi...")
-    metricas_voronoi = calcular_metricas_grafo(grafo_voronoi)
-    
-    # Salvar métricas em arquivo texto
-    metricas_voronoi_path = os.path.join(RESULTS_DIR, "metricas_grafo_voronoi.txt")
-    with open(metricas_voronoi_path, 'w') as f:
-        f.write("MÉTRICAS DO GRAFO VORONOI DE ERBS\n")
-        f.write("================================\n\n")
-        for metrica, valor in metricas_voronoi.items():
-            f.write(f"{metrica}: {valor}\n")
-    print(f"Métricas Voronoi salvas em: {metricas_voronoi_path}")
-    
-    # Verificar se é possível criar modelo PyG
-    try:
-        converter_para_pyg(grafo)
-        print("\nGrafo convertido para formato PyTorch Geometric com sucesso.")
-    except Exception as e:
-        print(f"\nNão foi possível converter o grafo para formato PyG: {e}")
-    
-    print("\nAnálise de grafos concluída com sucesso.")
+    print("\nAll graph analysis completed successfully.")
 
 # --- Função Principal --- 
 def main():
     print("="*80)
-    print("ANÁLISE DE ESTAÇÕES RÁDIO BASE (ERBs)")
+    print("RADIO BASE STATION (RBS) ANALYSIS SYSTEM")
     print("="*80)
-    print(f"Diretório de resultados: {os.path.abspath(RESULTS_DIR)}")
+    print("\nThis program analyzes RBS data to extract insights about signal coverage.")
     
-    # Etapa 1: Carregar e limpar dados
-    df = etapa_1_carregamento()
+    # Step 1: Loading data
+    df = step_1_loading()
     
-    # Etapa 2: Análise exploratória básica
-    df = etapa_2_analise_exploratoria(df)
+    # Step 2: Exploratory analysis
+    df = step_2_exploratory_analysis(df)
     
-    # Etapa 3: Processamento de cobertura
-    gdf_erb, gdf_setores = etapa_3_processamento_cobertura(df)
+    # Step 3: Coverage processing
+    gdf_rbs, gdf_sectors = step_3_coverage_processing(df)
     
-    # Etapa 4: Visualizações avançadas
-    etapa_4_visualizacoes(gdf_erb, gdf_setores)
+    # Step 4: Advanced visualizations
+    step_4_advanced_visualizations(gdf_rbs, gdf_sectors)
     
-    # Etapa 5: Análise de grafos
-    etapa_5_analise_grafos(gdf_erb)
+    # Step 5: Graph analysis
+    step_5_graph_analysis(gdf_rbs)
     
     print("\n" + "="*80)
-    print("ANÁLISE CONCLUÍDA")
+    print("ANALYSIS COMPLETED SUCCESSFULLY")
     print("="*80)
-    print(f"Todos os resultados foram salvos em: {os.path.abspath(RESULTS_DIR)}")
-    print("Verifique o diretório para visualizar mapas, gráficos e relatórios gerados.")
+    print(f"\nResults saved in the '{RESULTS_DIR}' directory.")
 
 if __name__ == "__main__":
     main()

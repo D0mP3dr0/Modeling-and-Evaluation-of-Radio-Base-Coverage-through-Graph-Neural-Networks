@@ -7,11 +7,11 @@ fiona
 folium
 h3
 contextily
-# Basemap pode ser complexa de instalar, considere alternativas como cartopy ou usar folium/geopandas diretamente
+# Basemap can be complex to install, consider alternatives such as cartopy or using folium/geopandas directly
 # basemap 
 scikit-learn
 plotly
-# Dependências PyTorch e PyG (verificar versões compatíveis)
+# PyTorch and PyG dependencies (check compatible versions)
 torch
 torchvision
 torch-geometric

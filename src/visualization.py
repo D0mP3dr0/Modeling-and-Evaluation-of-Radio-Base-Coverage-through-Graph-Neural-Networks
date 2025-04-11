@@ -1,7 +1,7 @@
 """
-Módulo para visualizações avançadas de dados de ERBs.
-Contém funções para criar mapas temáticos, visualizações de cobertura de sinal,
-mapas de calor e outras representações visuais das ERBs e suas características.
+Module for advanced visualizations of RBS data.
+Contains functions to create thematic maps, signal coverage visualizations,
+heat maps and other visual representations of RBS and their characteristics.
 """
 
 import matplotlib.pyplot as plt
@@ -23,16 +23,16 @@ from rasterio.features import rasterize
 from rasterio.transform import from_bounds
 from scipy.interpolate import griddata
 
-# Configuração padrão de cores para operadoras
-CORES_OPERADORAS = {
+# Default color configuration for operators
+OPERATOR_COLORS = {
     'CLARO': '#E02020',
     'OI': '#FFD700',
     'VIVO': '#9932CC',
     'TIM': '#0000CD'
 }
 
-def configurar_estilo_visualizacao():
-    """Configura o estilo padrão para todas as visualizações."""
+def configure_visualization_style():
+    """Configures the default style for all visualizations."""
     plt.rcParams.update({
         'font.family': 'DejaVu Sans',
         'font.size': 11,
@@ -49,24 +49,24 @@ def configurar_estilo_visualizacao():
         'savefig.pad_inches': 0.2
     })
 
-def adicionar_elementos_cartograficos(ax, titulo, fonte="Dados: Anatel (ERBs), OpenStreetMap (Base)"):
+def add_cartographic_elements(ax, title, source="Data: Anatel (RBS), OpenStreetMap (Base)"):
     """
-    Adiciona elementos cartográficos padrão a um mapa matplotlib.
+    Adds standard cartographic elements to a matplotlib map.
     
     Args:
-        ax: Matplotlib axis onde os elementos serão adicionados
-        titulo: Título do mapa
-        fonte: Texto com a fonte dos dados
+        ax: Matplotlib axis where elements will be added
+        title: Map title
+        source: Text with data source
     """
-    # Título
-    ax.set_title(titulo, fontweight='bold', pad=20)
+    # Title
+    ax.set_title(title, fontweight='bold', pad=20)
     
-    # Escala
+    # Scale
     scalebar = AnchoredSizeBar(ax.transData, 5000, '5 km', 'lower right', pad=0.5,
                               color='black', frameon=True, size_vertical=100)
     ax.add_artist(scalebar)
     
-    # Norte
+    # North arrow
     x, y, arrow_length = 0.06, 0.12, 0.08
     ax.annotate('N', xy=(x, y), xytext=(x, y-arrow_length),
                 arrowprops=dict(facecolor='black', width=2, headwidth=8),
@@ -75,200 +75,200 @@ def adicionar_elementos_cartograficos(ax, titulo, fonte="Dados: Anatel (ERBs), O
                 fontweight='bold',
                 bbox=dict(boxstyle="circle,pad=0.3", fc="white", ec="black", alpha=0.8))
     
-    # Fonte e data
-    ax.annotate(f"{fonte}\nGerado em: {datetime.now().strftime('%d/%m/%Y')}",
+    # Source and date
+    ax.annotate(f"{source}\nGenerated on: {datetime.now().strftime('%d/%m/%Y')}",
                 xy=(0.01, 0.01), xycoords='figure fraction', fontsize=8,
                 ha='left', va='bottom',
                 bbox=dict(boxstyle="round,pad=0.5", fc="white", alpha=0.8))
     
-    # Grade e outros elementos
+    # Grid and other elements
     ax.grid(True, linestyle='--', alpha=0.3, color='gray')
     ax.title.set_path_effects([PathEffects.withStroke(linewidth=1.5, foreground='white')])
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
 
-def criar_legenda_personalizada(ax, cores, titulo="Legenda"):
+def create_custom_legend(ax, colors, title="Legend"):
     """
-    Cria uma legenda personalizada com as cores das operadoras.
+    Creates a custom legend with operator colors.
     
     Args:
-        ax: Matplotlib axis onde a legenda será adicionada
-        cores: Dicionário com os nomes das operadoras e suas cores
-        titulo: Título da legenda
+        ax: Matplotlib axis where the legend will be added
+        colors: Dictionary with operator names and their colors
+        title: Legend title
     """
-    elementos_legenda = [Patch(facecolor=cor, edgecolor='k', alpha=0.7, label=operadora)
-                         for operadora, cor in cores.items()]
-    legenda = ax.legend(handles=elementos_legenda, title=titulo, loc='upper right',
+    legend_elements = [Patch(facecolor=color, edgecolor='k', alpha=0.7, label=operator)
+                         for operator, color in colors.items()]
+    legend = ax.legend(handles=legend_elements, title=title, loc='upper right',
                       frameon=True, framealpha=0.8, edgecolor='k')
-    legenda.get_frame().set_linewidth(0.8)
-    plt.setp(legenda.get_title(), fontweight='bold')
+    legend.get_frame().set_linewidth(0.8)
+    plt.setp(legend.get_title(), fontweight='bold')
 
-def criar_mapa_posicionamento(gdf_erb, caminho_saida, cores_operadoras=CORES_OPERADORAS):
+def create_positioning_map(gdf_rbs, output_path, operator_colors=OPERATOR_COLORS):
     """
-    Cria um mapa mostrando a posição das ERBs por operadora.
+    Creates a map showing the position of RBS by operator.
     
     Args:
-        gdf_erb: GeoDataFrame com as ERBs
-        caminho_saida: Caminho onde salvar o mapa
-        cores_operadoras: Dicionário de cores para cada operadora
+        gdf_rbs: GeoDataFrame with the RBS
+        output_path: Path to save the map
+        operator_colors: Dictionary of colors for each operator
     """
-    print("Criando mapa de posicionamento das ERBs...")
+    print("Creating RBS positioning map...")
     
-    # Reprojetar para Web Mercator (EPSG:3857) para uso com contextily
-    gdf_erb_3857 = gdf_erb.to_crs(epsg=3857)
+    # Reproject to Web Mercator (EPSG:3857) for use with contextily
+    gdf_rbs_3857 = gdf_rbs.to_crs(epsg=3857)
     
-    # Criar figura
+    # Create figure
     fig, ax = plt.subplots(figsize=(16, 12))
     
-    # Calcular tamanhos baseados no EIRP
-    min_eirp = gdf_erb_3857['EIRP_dBm'].min()
-    max_eirp = gdf_erb_3857['EIRP_dBm'].max()
-    tamanhos = ((gdf_erb_3857['EIRP_dBm'] - min_eirp) / (max_eirp - min_eirp) * 120 + 30)
+    # Calculate sizes based on EIRP
+    min_eirp = gdf_rbs_3857['EIRP_dBm'].min()
+    max_eirp = gdf_rbs_3857['EIRP_dBm'].max()
+    sizes = ((gdf_rbs_3857['EIRP_dBm'] - min_eirp) / (max_eirp - min_eirp) * 120 + 30)
     
-    # Plotar cada operadora com uma cor diferente
-    for operadora, cor in cores_operadoras.items():
-        subset = gdf_erb_3857[gdf_erb_3857['Operadora'] == operadora]
+    # Plot each operator with a different color
+    for operator, color in operator_colors.items():
+        subset = gdf_rbs_3857[gdf_rbs_3857['Operator'] == operator]
         if subset.empty:
             continue
             
-        subset_tamanhos = tamanhos.loc[subset.index]
+        subset_sizes = sizes.loc[subset.index]
         
-        # Adicionar efeito de glow
+        # Add glow effect
         ax.scatter(subset.geometry.x, subset.geometry.y,
-                  s=subset_tamanhos * 1.5, color=cor, alpha=0.2, edgecolor='none')
+                  s=subset_sizes * 1.5, color=color, alpha=0.2, edgecolor='none')
                   
-        # Adicionar pontos
+        # Add points
         ax.scatter(subset.geometry.x, subset.geometry.y,
-                  s=subset_tamanhos, color=cor, alpha=0.8, edgecolor='white', 
-                  linewidth=0.5, label=operadora)
+                  s=subset_sizes, color=color, alpha=0.8, edgecolor='white', 
+                  linewidth=0.5, label=operator)
     
-    # Adicionar mapa base do OpenStreetMap
+    # Add OpenStreetMap base map
     ctx.add_basemap(ax, source=ctx.providers.OpenStreetMap.Mapnik)
     
-    # Adicionar elementos cartográficos
-    adicionar_elementos_cartograficos(ax, 'Posicionamento das Estações Rádio Base (ERBs) por Operadora')
+    # Add cartographic elements
+    add_cartographic_elements(ax, 'Radio Base Stations (RBS) Positioning by Operator')
     
-    # Adicionar legenda
-    criar_legenda_personalizada(ax, cores_operadoras, "Operadoras")
+    # Add legend
+    create_custom_legend(ax, operator_colors, "Operators")
     
-    # Adicionar nota sobre tamanho dos pontos
-    ax.annotate('Tamanho dos pontos proporcional à potência irradiada (EIRP)',
+    # Add note about point sizes
+    ax.annotate('Point size proportional to radiated power (EIRP)',
                 xy=(0.5, 0.02), xycoords='figure fraction', ha='center',
                 fontsize=10, bbox=dict(boxstyle="round,pad=0.5", fc="white", alpha=0.8))
     
-    # Salvar figura
-    plt.savefig(caminho_saida, dpi=300, bbox_inches='tight')
+    # Save figure
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
-    print(f"Mapa de posicionamento salvo em {caminho_saida}")
+    print(f"Positioning map saved at {output_path}")
 
-def criar_mapa_cobertura_por_operadora(gdf_erb, gdf_setores, caminho_saida, cores_operadoras=CORES_OPERADORAS):
+def create_coverage_map_by_operator(gdf_rbs, gdf_sectors, output_path, operator_colors=OPERATOR_COLORS):
     """
-    Cria um mapa com 4 subplots mostrando a cobertura de cada operadora.
+    Creates a map with 4 subplots showing the coverage of each operator.
     
     Args:
-        gdf_erb: GeoDataFrame com as ERBs
-        gdf_setores: GeoDataFrame com os setores de cobertura
-        caminho_saida: Caminho onde salvar o mapa
-        cores_operadoras: Dicionário de cores para cada operadora
+        gdf_rbs: GeoDataFrame with the RBS
+        gdf_sectors: GeoDataFrame with the coverage sectors
+        output_path: Path to save the map
+        operator_colors: Dictionary of colors for each operator
     """
-    print("Criando mapa de cobertura por operadora...")
+    print("Creating coverage map by operator...")
     
-    # Reprojetar para Web Mercator
-    gdf_erb_3857 = gdf_erb.to_crs(epsg=3857)
-    gdf_setores_3857 = gdf_setores.to_crs(epsg=3857)
+    # Reproject to Web Mercator
+    gdf_rbs_3857 = gdf_rbs.to_crs(epsg=3857)
+    gdf_sectors_3857 = gdf_sectors.to_crs(epsg=3857)
     
-    # Criar figura com 4 subplots (2x2)
+    # Create figure with 4 subplots (2x2)
     fig, axes = plt.subplots(2, 2, figsize=(20, 15))
     axes = axes.flatten()
     
-    operadoras = ['CLARO', 'OI', 'VIVO', 'TIM']
+    operators = ['CLARO', 'OI', 'VIVO', 'TIM']
     
-    for i, operadora in enumerate(operadoras):
+    for i, operator in enumerate(operators):
         ax = axes[i]
         
-        # Filtrar dados para a operadora atual
-        subset_erb = gdf_erb_3857[gdf_erb_3857['Operadora'] == operadora]
-        subset_setores = gdf_setores_3857[gdf_setores_3857['Operadora'] == operadora]
+        # Filter data for the current operator
+        subset_rbs = gdf_rbs_3857[gdf_rbs_3857['Operator'] == operator]
+        subset_sectors = gdf_sectors_3857[gdf_sectors_3857['Operator'] == operator]
         
-        if subset_setores.empty:
-            ax.set_title(f'Sem dados para {operadora}', fontsize=16)
+        if subset_sectors.empty:
+            ax.set_title(f'No data for {operator}', fontsize=16)
             continue
             
-        # Obter cor para a operadora
-        cor_base = cores_operadoras[operadora]
-        cor_setores = f"{cor_base}66"  # Cor com transparência (alfa = 66)
+        # Get color for the operator
+        base_color = operator_colors[operator]
+        sectors_color = f"{base_color}66"  # Color with transparency (alpha = 66)
         
-        # Plotar setores de cobertura
-        subset_setores.plot(ax=ax, color=cor_setores, edgecolor=cor_base, linewidth=0.3, alpha=0.6)
+        # Plot coverage sectors
+        subset_sectors.plot(ax=ax, color=sectors_color, edgecolor=base_color, linewidth=0.3, alpha=0.6)
         
-        # Plotar ERBs
-        subset_erb.plot(ax=ax, color=cor_base, markersize=50, marker='o',
+        # Plot RBS
+        subset_rbs.plot(ax=ax, color=base_color, markersize=50, marker='o',
                        edgecolor='white', linewidth=0.7, alpha=0.9)
         
-        # Adicionar mapa base
+        # Add base map
         ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
         
-        # Adicionar elementos cartográficos
-        adicionar_elementos_cartograficos(
+        # Add cartographic elements
+        add_cartographic_elements(
             ax, 
-            f'Cobertura da Operadora {operadora}'
+            f'Coverage of Operator {operator}'
         )
         
-        # Adicionar informações estatísticas
-        n_erbs = len(subset_erb)
-        cobertura_media = subset_erb['Raio_Cobertura_km'].mean()
-        densidade_cobertura = n_erbs / 325  # Aproximação da área em km²
+        # Add statistical information
+        n_rbs = len(subset_rbs)
+        average_coverage = subset_rbs['Coverage_Radius_km'].mean()
+        coverage_density = n_rbs / 325  # Approximation of the area in km²
         
-        info_text = (f"Total de ERBs: {n_erbs}\n"
-                    f"Raio médio: {cobertura_media:.2f} km\n"
-                    f"Densidade: {densidade_cobertura:.2f} ERBs/km²")
+        info_text = (f"Total RBS: {n_rbs}\n"
+                    f"Average radius: {average_coverage:.2f} km\n"
+                    f"Density: {coverage_density:.2f} RBS/km²")
                     
         ax.annotate(info_text, xy=(0.02, 0.96), xycoords='axes fraction',
                    fontsize=11, ha='left', va='top',
-                   bbox=dict(boxstyle="round,pad=0.5", fc="white", ec=cor_base, alpha=0.8))
+                   bbox=dict(boxstyle="round,pad=0.5", fc="white", ec=base_color, alpha=0.8))
     
-    # Ajustar layout
+    # Adjust layout
     plt.tight_layout()
     plt.subplots_adjust(wspace=0.1, hspace=0.15)
     
-    # Salvar figura
-    plt.savefig(caminho_saida, dpi=300, bbox_inches='tight')
+    # Save figure
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
-    print(f"Mapa de cobertura por operadora salvo em {caminho_saida}")
+    print(f"Coverage map by operator saved at {output_path}")
 
-def criar_mapa_sobreposicao(gdf_erb, gdf_setores, caminho_saida, cores_operadoras=CORES_OPERADORAS):
+def create_overlap_map(gdf_rbs, gdf_sectors, output_path, operator_colors=OPERATOR_COLORS):
     """
-    Cria um mapa mostrando a sobreposição de cobertura entre operadoras.
+    Creates a map showing the coverage overlap between operators.
     
     Args:
-        gdf_erb: GeoDataFrame com as ERBs
-        gdf_setores: GeoDataFrame com os setores de cobertura
-        caminho_saida: Caminho onde salvar o mapa
-        cores_operadoras: Dicionário de cores para cada operadora
+        gdf_rbs: GeoDataFrame with the RBS
+        gdf_sectors: GeoDataFrame with the coverage sectors
+        output_path: Path to save the map
+        operator_colors: Dictionary of colors for each operator
     """
-    print("Criando mapa de sobreposição de cobertura...")
+    print("Creating coverage overlap map...")
     
     try:
-        # Reprojetar para Web Mercator
-        gdf_erb_3857 = gdf_erb.to_crs(epsg=3857)
-        gdf_setores_3857 = gdf_setores.to_crs(epsg=3857)
+        # Reproject to Web Mercator
+        gdf_rbs_3857 = gdf_rbs.to_crs(epsg=3857)
+        gdf_sectors_3857 = gdf_sectors.to_crs(epsg=3857)
         
-        # Obter limites (bounding box)
-        bbox = gdf_erb_3857.total_bounds
+        # Get limits (bounding box)
+        bbox = gdf_rbs_3857.total_bounds
         x_min, y_min, x_max, y_max = bbox
         
-        # Definir tamanho da grade para rasterização
+        # Define grid size for rasterization
         grid_size = 500
         
-        # Definir transformação afim para o raster
+        # Define affine transformation for raster
         transform = from_bounds(x_min, y_min, x_max, y_max, grid_size, grid_size)
         
-        # Inicializar array de contagem com zeros
-        contagem_sobreposicao = np.zeros((grid_size, grid_size), dtype=np.uint8)
+        # Initialize array of counts with zeros
+        contagem_overlap = np.zeros((grid_size, grid_size), dtype=np.uint8)
         
-        # Para cada operadora, rasterize seus polígonos de cobertura e some os resultados
-        for operadora in cores_operadoras.keys():
-            subset = gdf_setores_3857[gdf_setores_3857['Operadora'] == operadora]
+        # For each operator, rasterize their coverage polygons and sum the results
+        for operator in operator_colors.keys():
+            subset = gdf_sectors_3857[gdf_sectors_3857['Operator'] == operator]
             if not subset.empty:
                 shapes = [(geom, 1) for geom in subset.geometry if geom.is_valid]
                 if shapes:
@@ -280,168 +280,168 @@ def criar_mapa_sobreposicao(gdf_erb, gdf_setores, caminho_saida, cores_operadora
                         fill=0,
                         dtype=np.uint8
                     )
-                    contagem_sobreposicao += mask
+                    contagem_overlap += mask
         
-        # Plotar o resultado
+        # Plot the result
         fig, ax = plt.subplots(figsize=(16, 12))
         
-        # Plotar a matriz de sobreposição como imagem
-        im = ax.imshow(contagem_sobreposicao, extent=[x_min, x_max, y_min, y_max],
+        # Plot the overlap matrix as an image
+        im = ax.imshow(contagem_overlap, extent=[x_min, x_max, y_min, y_max],
                        cmap=plt.cm.viridis, origin='lower', alpha=0.7, interpolation='bilinear')
         
-        # Opcional: plotar os limites dos setores para cada operadora
-        for operadora in cores_operadoras.keys():
-            subset = gdf_setores_3857[gdf_setores_3857['Operadora'] == operadora]
+        # Optional: plot the boundaries of the sectors for each operator
+        for operator in operator_colors.keys():
+            subset = gdf_sectors_3857[gdf_sectors_3857['Operator'] == operator]
             if not subset.empty:
-                subset.boundary.plot(ax=ax, color=cores_operadoras[operadora], linewidth=1, alpha=0.8)
+                subset.boundary.plot(ax=ax, color=operator_colors[operator], linewidth=1, alpha=0.8)
         
-        # Plotar as ERBs
-        for operadora, cor in cores_operadoras.items():
-            subset = gdf_erb_3857[gdf_erb_3857['Operadora'] == operadora]
+        # Plot the RBS
+        for operator, cor in operator_colors.items():
+            subset = gdf_rbs_3857[gdf_rbs_3857['Operator'] == operator]
             if not subset.empty:
                 subset.plot(ax=ax, color=cor, markersize=20, edgecolor='white', linewidth=0.5)
         
-        # Adicionar mapa base
+        # Add base map
         ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
         
-        # Adicionar elementos cartográficos
-        adicionar_elementos_cartograficos(
+        # Add cartographic elements
+        add_cartographic_elements(
             ax, 
-            'Sobreposição de Cobertura entre Operadoras',
-            "Operadoras sobrepostas: CLARO, OI, TIM, VIVO"
+            'Coverage Overlap between Operators',
+            "Overlapping Operators: CLARO, OI, TIM, VIVO"
         )
         
-        # Adicionar barra de cores
+        # Add color bar
         cbar = plt.colorbar(im, ax=ax, shrink=0.7)
-        cbar.set_label('Número de Operadoras com Cobertura', fontsize=12)
+        cbar.set_label('Number of Operators with Coverage', fontsize=12)
         cbar.set_ticks(range(5))
-        cbar.set_ticklabels(['Sem cobertura', '1 operadora', '2 operadoras', '3 operadoras', '4 operadoras'])
+        cbar.set_ticklabels(['No coverage', '1 operator', '2 operators', '3 operators', '4 operators'])
         
-        # Adicionar legenda
-        criar_legenda_personalizada(ax, cores_operadoras, "Operadoras")
+        # Add legend
+        create_custom_legend(ax, operator_colors, "Operators")
         
-        # Salvar figura
-        plt.savefig(caminho_saida, dpi=300, bbox_inches='tight')
+        # Save figure
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
         plt.close(fig)
-        print(f"Mapa de sobreposição salvo em {caminho_saida}")
+        print(f"Coverage overlap map saved at {output_path}")
         
     except Exception as e:
-        print(f"Erro ao criar mapa de sobreposição: {e}")
+        print(f"Error creating coverage overlap map: {e}")
         plt.close('all')
 
-def criar_mapa_calor_potencia(gdf_erb, caminho_saida):
+def create_heat_map_power(gdf_rbs, output_path):
     """
-    Cria um mapa de calor mostrando a intensidade da potência das ERBs.
+    Creates a heat map showing the intensity of the power of the RBS.
     
     Args:
-        gdf_erb: GeoDataFrame com as ERBs
-        caminho_saida: Caminho onde salvar o mapa
+        gdf_rbs: GeoDataFrame with the RBS
+        output_path: Path to save the map
     """
-    print("Criando mapa de calor de potência...")
+    print("Creating heat map of power...")
     
-    # Reprojetar para Web Mercator
-    gdf_erb_3857 = gdf_erb.to_crs(epsg=3857)
+    # Reproject to Web Mercator
+    gdf_rbs_3857 = gdf_rbs.to_crs(epsg=3857)
     
-    # Criar figura
+    # Create figure
     fig, ax = plt.subplots(figsize=(16, 12))
     
-    # Obter limites (bounding box) com margem
-    bbox = gdf_erb_3857.total_bounds
+    # Get limits (bounding box) with margin
+    bbox = gdf_rbs_3857.total_bounds
     x_min, y_min, x_max, y_max = bbox
     margin = 0.01
     x_min -= margin; y_min -= margin; x_max += margin; y_max += margin
     
-    # Criar grade para interpolação
+    # Create grid for interpolation
     grid_size = 500
     xi = np.linspace(x_min, x_max, grid_size)
     yi = np.linspace(y_min, y_max, grid_size)
     xi, yi = np.meshgrid(xi, yi)
     
-    # Obter pontos e valores para interpolação
-    pontos = np.array([(p.x, p.y) for p in gdf_erb_3857.geometry])
-    valores = gdf_erb_3857['EIRP_dBm'].values
+    # Get points and values for interpolation
+    points = np.array([(p.x, p.y) for p in gdf_rbs_3857.geometry])
+    values = gdf_rbs_3857['EIRP_dBm'].values
     
-    # Interpolar valores na grade
-    grid_potencia = griddata(pontos, valores, (xi, yi), method='cubic', fill_value=np.min(valores))
+    # Interpolate values on the grid
+    grid_power = griddata(points, values, (xi, yi), method='cubic', fill_value=np.min(values))
     
-    # Limitar valores para melhor visualização (percentis 5 e 95)
-    vmin = np.percentile(grid_potencia, 5)
-    vmax = np.percentile(grid_potencia, 95)
+    # Limit values for better visualization (5th and 95th percentiles)
+    vmin = np.percentile(grid_power, 5)
+    vmax = np.percentile(grid_power, 95)
     
-    # Criar mapa de cores personalizado
-    cmap = LinearSegmentedColormap.from_list('potencia',
+    # Create custom color map
+    cmap = LinearSegmentedColormap.from_list('power',
                 ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1',
                  '#6baed6', '#4292c6', '#2171b5', '#08519c', '#08306b'], N=256)
     
-    # Plotar a interpolação como imagem
-    im = ax.imshow(grid_potencia, extent=[x_min, x_max, y_min, y_max],
+    # Plot the interpolation as an image
+    im = ax.imshow(grid_power, extent=[x_min, x_max, y_min, y_max],
                   origin='lower', cmap=cmap, alpha=0.8, vmin=vmin, vmax=vmax, aspect='auto')
     
-    # Adicionar contornos
-    contornos = ax.contour(xi, yi, grid_potencia, levels=5, colors='white', alpha=0.6, linewidths=0.8)
-    plt.clabel(contornos, inline=1, fontsize=8, fmt='%.1f dBm')
+    # Add contours
+    contours = ax.contour(xi, yi, grid_power, levels=5, colors='white', alpha=0.6, linewidths=0.8)
+    plt.clabel(contours, inline=1, fontsize=8, fmt='%.1f dBm')
     
-    # Plotar as ERBs
-    scatter = ax.scatter(gdf_erb_3857.geometry.x, gdf_erb_3857.geometry.y,
-                        c=gdf_erb_3857['EIRP_dBm'], cmap=cmap, s=50, edgecolor='white',
+    # Plot the RBS
+    scatter = ax.scatter(gdf_rbs_3857.geometry.x, gdf_rbs_3857.geometry.y,
+                        c=gdf_rbs_3857['EIRP_dBm'], cmap=cmap, s=50, edgecolor='white',
                         linewidth=0.5, alpha=0.9, vmin=vmin, vmax=vmax)
     
-    # Adicionar mapa base
+    # Add base map
     ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
     
-    # Adicionar elementos cartográficos
-    adicionar_elementos_cartograficos(ax, 'Potência Efetivamente Irradiada (EIRP) das ERBs')
+    # Add cartographic elements
+    add_cartographic_elements(ax, 'Effective Radiated Power (EIRP) of RBS')
     
-    # Adicionar barra de cores
+    # Add color bar
     cbar = plt.colorbar(im, ax=ax, shrink=0.7)
     cbar.set_label('EIRP (dBm)', fontsize=12)
     
-    # Adicionar estatísticas
-    eirp_min = gdf_erb_3857['EIRP_dBm'].min()
-    eirp_max = gdf_erb_3857['EIRP_dBm'].max()
-    eirp_media = gdf_erb_3857['EIRP_dBm'].mean()
+    # Add statistics
+    eirp_min = gdf_rbs_3857['EIRP_dBm'].min()
+    eirp_max = gdf_rbs_3857['EIRP_dBm'].max()
+    eirp_media = gdf_rbs_3857['EIRP_dBm'].mean()
     
-    info_text = (f"EIRP Média: {eirp_media:.1f} dBm\n"
-                f"EIRP Mínima: {eirp_min:.1f} dBm\n"
-                f"EIRP Máxima: {eirp_max:.1f} dBm")
+    info_text = (f"EIRP Average: {eirp_media:.1f} dBm\n"
+                f"EIRP Minimum: {eirp_min:.1f} dBm\n"
+                f"EIRP Maximum: {eirp_max:.1f} dBm")
                 
     ax.annotate(info_text, xy=(0.02, 0.96), xycoords='axes fraction',
                 fontsize=11, ha='left', va='top',
                 bbox=dict(boxstyle="round,pad=0.5", fc="white", alpha=0.8))
     
-    # Salvar figura
-    plt.savefig(caminho_saida, dpi=300, bbox_inches='tight')
+    # Save figure
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
     plt.close(fig)
-    print(f"Mapa de calor de potência salvo em {caminho_saida}")
+    print(f"Heat map of power saved at {output_path}")
 
-def criar_mapa_folium(gdf_erb, caminho_saida):
+def create_folium_map(gdf_rbs, output_path):
     """
-    Cria um mapa interativo Folium com as ERBs.
+    Creates an interactive Folium map with the RBS.
     
     Args:
-        gdf_erb: GeoDataFrame com as ERBs
-        caminho_saida: Caminho onde salvar o mapa HTML
+        gdf_rbs: GeoDataFrame with the RBS
+        output_path: Path to save the HTML map
     """
-    print("Criando mapa interativo Folium...")
+    print("Creating interactive Folium map...")
     
-    # Filtrar dados válidos
-    geo_df = gdf_erb.dropna(subset=['Latitude', 'Longitude'])
+    # Filter valid data
+    geo_df = gdf_rbs.dropna(subset=['Latitude', 'Longitude'])
     geo_df = geo_df[(geo_df['Latitude'] != 0) & (geo_df['Longitude'] != 0)]
     
     if geo_df.empty:
-        print("Não há dados válidos para gerar o mapa Folium.")
+        print("No valid data to generate Folium map.")
         return
     
-    # Centro do mapa (média das coordenadas)
+    # Map center (average of coordinates)
     map_center = [geo_df['Latitude'].mean(), geo_df['Longitude'].mean()]
     
-    # Criar mapa
+    # Create map
     m = folium.Map(location=map_center, zoom_start=10, tiles='CartoDB positron')
     
-    # Adicionar cluster de marcadores
+    # Add marker cluster
     marker_cluster = MarkerCluster().add_to(m)
     
-    # Para cada operadora, usar uma cor diferente
+    # For each operator, use a different color
     cores_html = {
         'CLARO': 'red',
         'OI': 'orange',
@@ -450,25 +450,25 @@ def criar_mapa_folium(gdf_erb, caminho_saida):
         'OUTRA': 'gray'
     }
     
-    # Adicionar marcadores para cada ERB
+    # Add markers for each RBS
     for idx, row in geo_df.iterrows():
-        cor = cores_html.get(row.get('Operadora', 'OUTRA'), 'gray')
+        cor = cores_html.get(row.get('Operator', 'OUTRA'), 'gray')
         
-        # Criar texto pop-up
+        # Create pop-up text
         popup_text = f"""
-        <b>Operadora:</b> {row.get('NomeEntidade', 'N/A')}<br>
-        <b>Tecnologia:</b> {row.get('Tecnologia', 'N/A')}<br>
-        <b>Freq. Tx:</b> {row.get('FreqTxMHz', 'N/A')} MHz<br>
+        <b>Operator:</b> {row.get('NomeEntidade', 'N/A')}<br>
+        <b>Technology:</b> {row.get('Tecnologia', 'N/A')}<br>
+        <b>Tx Freq:</b> {row.get('FreqTxMHz', 'N/A')} MHz<br>
         <b>EIRP:</b> {row.get('EIRP_dBm', 'N/A')} dBm<br>
-        <b>Raio:</b> {row.get('Raio_Cobertura_km', 'N/A')} km<br>
-        <b>Azimute:</b> {row.get('Azimute', 'N/A')}°<br>
-        <b>Altura:</b> {row.get('AlturaAntena', 'N/A')} m<br>
+        <b>Radius:</b> {row.get('Coverage_Radius_km', 'N/A')} km<br>
+        <b>Azimuth:</b> {row.get('Azimute', 'N/A')}°<br>
+        <b>Height:</b> {row.get('AlturaAntena', 'N/A')} m<br>
         """
         
-        # Criar tooltip (texto que aparece ao passar o mouse)
-        tooltip = f"{row.get('Operadora', 'ERB')}: {row.get('Tecnologia', '')}"
+        # Create tooltip (text that appears when mouse hovers over)
+        tooltip = f"{row.get('Operator', 'RBS')}: {row.get('Tecnologia', '')}"
         
-        # Adicionar marcador
+        # Add marker
         folium.Marker(
             location=[row['Latitude'], row['Longitude']],
             popup=folium.Popup(popup_text, max_width=300),
@@ -476,6 +476,6 @@ def criar_mapa_folium(gdf_erb, caminho_saida):
             icon=folium.Icon(color=cor, icon='signal', prefix='fa')
         ).add_to(marker_cluster)
     
-    # Salvar mapa
-    m.save(caminho_saida)
-    print(f"Mapa interativo Folium salvo em: {caminho_saida}")
+    # Save map
+    m.save(output_path)
+    print(f"Interactive Folium map saved at: {output_path}")
