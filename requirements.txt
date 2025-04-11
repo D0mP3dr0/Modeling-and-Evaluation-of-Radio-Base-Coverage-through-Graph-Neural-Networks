@@ -1,0 +1,21 @@
+pandas
+numpy
+matplotlib
+seaborn
+geopandas
+fiona
+folium
+h3
+contextily
+# Basemap pode ser complexa de instalar, considere alternativas como cartopy ou usar folium/geopandas diretamente
+# basemap 
+scikit-learn
+plotly
+# Dependências PyTorch e PyG (verificar versões compatíveis)
+torch
+torchvision
+torch-geometric
+torch-scatter
+torch-sparse
+torch-cluster
+torch-spline-conv
