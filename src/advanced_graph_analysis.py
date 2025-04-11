@@ -27,7 +27,19 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.animation import FuncAnimation
 import matplotlib.gridspec as gridspec
 from sklearn.cluster import SpectralClustering
-from community import community_louvain
+try:
+    from community import community_louvain
+    LOUVAIN_AVAILABLE = True
+except ImportError:
+    LOUVAIN_AVAILABLE = False
+    print("Warning: python-louvain not found. Community detection features will be limited.")
+    # Define a simple fallback for the community_louvain functionality
+    class CommunityLouvainFallback:
+        @staticmethod
+        def best_partition(G):
+            """Simple fallback that assigns all nodes to one community"""
+            return {node: 0 for node in G.nodes()}
+    community_louvain = CommunityLouvainFallback()
 import geopandas as gpd
 from shapely.geometry import Point, LineString, Polygon
 import folium
@@ -686,6 +698,10 @@ def analyze_communities(G, gdf_rbs, output_path):
     """
     print("Analyzing communities in RBS network...")
     
+    # Check if python-louvain is available
+    if not LOUVAIN_AVAILABLE:
+        print("Warning: Using fallback community detection. Install python-louvain for better results.")
+    
     # Detect communities using Louvain method
     communities = community_louvain.best_partition(G)
     
@@ -693,11 +709,12 @@ def analyze_communities(G, gdf_rbs, output_path):
     nx.set_node_attributes(G, communities, 'community')
     
     # Count number of communities
-    num_communities = len(set(communities.values()))
+    n_communities = len(set(communities.values()))
+    print(f"Detected {n_communities} communities")
     
     # Create output dictionary with results
     results = {
-        'num_communities': num_communities,
+        'num_communities': n_communities,
         'community_sizes': {},
         'community_compositions': {},
         'community_metrics': {}
