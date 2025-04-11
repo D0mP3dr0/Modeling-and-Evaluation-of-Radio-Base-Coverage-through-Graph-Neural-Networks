@@ -30,6 +30,7 @@ try:
     from coverage_quality_analysis import run_coverage_quality_analysis
     from coverage_prediction import run_coverage_prediction
     from advanced_graph_analysis import run_advanced_graph_analysis
+    from educational_documentation import create_educational_documentation
 except ImportError:
     # Fallback for direct execution from project root
     from src.data_processing import load_and_process_data
@@ -50,6 +51,7 @@ except ImportError:
     from src.coverage_quality_analysis import run_coverage_quality_analysis
     from src.coverage_prediction import run_coverage_prediction
     from src.advanced_graph_analysis import run_advanced_graph_analysis
+    from src.educational_documentation import create_educational_documentation
 
 def parse_arguments():
     """
@@ -103,6 +105,8 @@ def parse_arguments():
                       help='Run coverage prediction')
     parser.add_argument('--advanced-graph', '-ag', action='store_true',
                       help='Run advanced graph analysis')
+    parser.add_argument('--educational-docs', '-ed', action='store_true',
+                      help='Create educational documentation')
     
     # Additional options
     parser.add_argument('--debug', action='store_true',
@@ -136,7 +140,8 @@ def main():
                           args.correlation, args.spatial, args.integration,
                           args.prediction, args.dashboard, args.report,
                           args.advanced_coverage, args.coverage_quality, 
-                          args.coverage_prediction, args.advanced_graph]):
+                          args.coverage_prediction, args.advanced_graph,
+                          args.educational_docs]):
                     sys.exit(0)
         
         # Load and process data
@@ -266,6 +271,17 @@ def main():
                 print(f"Advanced graph analysis saved to {advanced_graph_dir}")
             except Exception as e:
                 print(f"Error in advanced graph analysis: {e}")
+        
+        if args.all or args.educational_docs:
+            print("Creating educational documentation...")
+            try:
+                educational_docs_dir = os.path.join(results_dir, 'educational_docs')
+                os.makedirs(educational_docs_dir, exist_ok=True)
+                create_educational_documentation(gdf_rbs, educational_docs_dir)
+                print(f"Educational documentation created at {educational_docs_dir}")
+                print(f"Open {os.path.join(educational_docs_dir, 'index.html')} in a web browser to view.")
+            except Exception as e:
+                print(f"Error in educational documentation: {e}")
         
         if args.all or args.dashboard:
             print("Running interactive dashboard...")
