@@ -1,136 +1,189 @@
-# Modeling and Evaluation of Radio Base Station Coverage Through GNN
+# Radio Base Stations (RBS) Analysis Tool
 
-This project performs advanced analysis of Radio Base Stations (RBS), from data exploration,
-coverage processing, geospatial visualizations, to graph modeling and neural networks
-for analyzing connectivity between stations.
+Uma ferramenta completa para análise de dados de estações rádio base, incluindo distribuição espacial, tendências tecnológicas, padrões temporais e estimativas de cobertura.
 
-## Overview
+## Características
 
-The project addresses the problem of RBS coverage analysis and modeling using Anatel data,
-with special focus on the Sorocaba-SP area. It implements:
+- **Análise Básica**: Resumo estatístico dos dados de ERBs.
+- **Visualização**: Gera mapas e gráficos para visualizar a distribuição de ERBs.
+- **Análise de Grafos**: Análise de rede das conexões e clusters de ERBs.
+- **Modelagem de Cobertura**: Estima áreas de cobertura com base em frequência, potência e terreno.
+- **Análise de Tecnologia e Frequência**: Analisa a relação entre frequências, tecnologias e potência.
+- **Análise Temporal Avançada**: Estuda padrões de implantação ao longo do tempo com detecção de sazonalidade.
+- **Análise de Correlação**: Identifica relações entre variáveis técnicas.
+- **Análise Espacial**: Clustering espacial avançado e detecção de padrões.
+- **Análise Integrada**: Análise combinada de aspectos temporais e tecnológicos.
+- **Análise Preditiva**: Previsão de tendências futuras de implantação usando modelos de séries temporais.
+- **Dashboard Interativo**: Dashboard de visualização interativa baseado na web.
+- **Relatórios Automatizados**: Gera relatórios PDF e Excel abrangentes.
+- **Integração com IA**: Suporte opcional para integração com API Claude da Anthropic para análises avançadas.
 
-1. **Data Processing**: Cleaning and transformation of raw Anatel data.
-2. **Coverage Modeling**: Calculation of EIRP, coverage radius and creation of sector geometries.
-3. **Geospatial Visualizations**: Interactive and static maps of coverage, overlap and heatmaps.
-4. **Graph Analysis**: Modeling RBS as nodes in a graph, with edges representing connectivity.
-5. **GNN Preparation**: Transformation into PyTorch Geometric compatible format for advanced analysis via GNN.
+## Instalação
 
-## Project Structure
+Clone o repositório e instale as dependências necessárias:
 
-```
-projeto_erb/
-├── data/                  # Raw and processed data
-│   └── README.md          # Instructions about required data
-├── results/               # Generated results (maps, charts, metrics)
-├── src/                   # Modularized source code
-│   ├── __init__.py        # Package initialization file
-│   ├── analysis.py        # Basic exploratory analysis functions
-│   ├── coverage_models.py # Coverage calculation models
-│   ├── data_processing.py # Data processing functions
-│   ├── graph_analysis.py  # Functions for graph analysis and GNN
-│   └── visualization.py   # Functions for advanced visualizations
-├── main.py                # Main script to execute the complete flow
-├── requirements.txt       # Python dependencies
-└── README.md              # This file
-```
-
-## Features
-
-### 1. Data Processing
-- Cleaning of raw Anatel data
-- Filtering for region of interest
-- Normalization of operators (Claro, Vivo, TIM, Oi)
-- Intelligent filling of missing values
-
-### 2. Coverage Modeling
-- Calculation of EIRP (Effective Isotropic Radiated Power)
-- Calculation of coverage radii based on frequency, power and environment
-- Generation of coverage sectors (polygons) for each RBS
-- Classification of area type (urban, suburban, rural)
-
-### 3. Advanced Visualizations
-- RBS positioning map by operator
-- Coverage maps by operator
-- Coverage overlap map
-- EIRP power heat map
-- Interactive folium map for dynamic navigation
-
-### 4. Graph Analysis
-- Construction of connectivity graphs between RBS
-- Calculation of network metrics (centrality, clustering, etc.)
-- Graph visualization by operator and centrality
-- Graph generation based on Voronoi diagram
-
-### 5. GNN Preparation
-- Conversion to PyTorch Geometric format
-- Definition of node features (power, gain, etc.)
-- Definition of edge features (distance, overlap)
-- Structuring for future GNN application
-
-## How to Use
-
-### Prerequisites
-- Python 3.8+
-- Dependencies listed in `requirements.txt`
-- Anatel licensing CSV file (not included due to size)
-
-### Setup
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/D0mP3dr0/Modeling-and-Evaluation-of-Radio-Base-Coverage-through-Graph-Neural-Networks.git
-   cd projeto_erb
-   ```
-
-2. **Create a virtual environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/macOS
-   # or
-   # venv\Scripts\activate    # Windows
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Add data:**
-   - Place the Anatel licensing CSV file in the `data/` folder.
-   - Rename to `csv_licenciamento_bruto.csv` or adjust the path in `main.py`.
-
-### Execution
-
-To run the complete project:
 ```bash
-python main.py
+git clone https://github.com/seuusuario/analise-erb.git
+cd analise-erb
+pip install -r requirements.txt
 ```
 
-The script processes all steps sequentially and saves the results in the `results/` folder.
+Algumas dependências adicionais podem ser necessárias para análises específicas:
+- Para previsão com Prophet: `pip install prophet`
+- Para diagramas de Voronoi: `pip install geovoronoi`
 
-### Generated Results
+## Uso
 
-- **Statistics:** Metrics about RBS and graphs
-- **Static Maps:** High-resolution PNG visualizations in the `results/` folder
-- **Interactive Maps:** HTML file with interactive Folium map
-- **Graphs:** Visualizations of connectivity and Voronoi graphs
+### Interface de Linha de Comando
 
-## Main Dependencies
+A ferramenta pode ser executada a partir da linha de comando com várias opções:
 
-- **Data Analysis:** pandas, numpy
-- **Geospatial:** geopandas, shapely, folium
-- **Visualization:** matplotlib, seaborn, contextily
-- **Graphs:** networkx, scipy
-- **GNN:** torch, torch-geometric (optional)
+```bash
+python src/main.py --input <arquivo_entrada> --output <diretorio_saida> [opções]
+```
 
-## Implementation Notes
+Opções:
+- `--input`, `-i`: Caminho para o arquivo de dados de entrada (CSV ou GeoJSON) [obrigatório]
+- `--output`, `-o`: Caminho para o diretório de saída (padrão: 'results')
+- `--all`, `-a`: Executa todas as análises disponíveis
+- `--basic`, `-b`: Executa análise básica
+- `--visualization`, `-v`: Cria visualizações
+- `--graph`, `-g`: Executa análise de grafos
+- `--coverage`, `-c`: Estima cobertura
+- `--tech-frequency`, `-tf`: Executa análise de tecnologia e frequência
+- `--temporal`, `-t`: Executa análise temporal avançada
+- `--correlation`, `-cr`: Executa análise de correlação
+- `--spatial`, `-s`: Executa análise espacial
+- `--integration`, `-int`: Executa análise integrada
+- `--prediction`, `-p`: Executa análise preditiva
+- `--dashboard`, `-d`: Executa dashboard interativo
+- `--report`, `-r`: Gera relatório abrangente
+- `--test`: Executa testes unitários
+- `--debug`: Ativa o modo de depuração
 
-- The code is structured to be modular and extensible.
-- Detailed documentation functions explain parameters and returns.
-- The system can operate even with partial data.
-- GNN implementation requires PyTorch and PyTorch Geometric, but other functionalities remain operational without them.
+### Exemplo
 
-## Authors and Contributions
+```bash
+# Executa todas as análises
+python src/main.py --input data/erb_data.csv --output results --all
 
-- **Development:** D0mP3dr0
-- **Contributions:** PRs are welcome!
+# Gera um relatório
+python src/main.py --input data/erb_data.csv --output results --report
+
+# Executa o dashboard interativo
+python src/main.py --input data/erb_data.csv --dashboard
+```
+
+### API Python
+
+A ferramenta também pode ser usada como uma biblioteca Python:
+
+```python
+import geopandas as gpd
+from src.data_processing import load_and_process_data
+from src.tech_frequency_analysis import run_tech_frequency_analysis
+from src.report_generator import run_report_generation
+
+# Carrega dados
+gdf_rbs = load_and_process_data('data/erb_data.csv')
+
+# Executa análise de tecnologia e frequência
+run_tech_frequency_analysis(gdf_rbs, 'results/tech_analysis')
+
+# Gera relatório
+run_report_generation(gdf_rbs, 'results/reports')
+```
+
+## Formato dos Dados de Entrada
+
+A ferramenta aceita dados em formato CSV ou GeoJSON. As seguintes colunas são usadas por várias análises:
+
+### Colunas Obrigatórias
+- Latitude/Longitude ou campo geometry (para GeoJSON)
+- Operator: Nome da operadora de rede móvel
+- Tecnologia: Tecnologia (2G, 3G, 4G, 5G)
+- FreqTxMHz: Frequência de transmissão em MHz
+- PotenciaTransmissorWatts: Potência do transmissor em watts
+
+### Colunas Opcionais (usadas se disponíveis)
+- AlturaAntena: Altura da antena em metros
+- installation_date ou data_licenciamento: Data de instalação ou licenciamento
+- EIRP_dBm: Potência Isotrópica Radiada Efetiva
+- FrequencyBand: Categoria da banda de frequência
+
+Se algumas colunas estiverem ausentes, a ferramenta tentará estimar ou gerar dados fictícios quando possível.
+
+## Saída
+
+A ferramenta gera várias saídas dependendo das análises executadas:
+- Visualizações estáticas (arquivos PNG)
+- Visualizações interativas (arquivos HTML)
+- Arquivos de dados (CSV, GeoJSON)
+- Relatórios abrangentes (PDF, Excel)
+- Dashboard interativo (baseado na web)
+
+## Integração com API Claude da Anthropic
+
+Esta ferramenta suporta integração opcional com a API Claude da Anthropic para:
+
+1. **Análise de Texto Avançada**: Extração de insights de descrições textuais e comentários.
+2. **Interpretação de Resultados**: Geração de resumos e interpretações dos gráficos e análises.
+3. **Recomendações de Otimização**: Sugestões para melhorar a cobertura da rede.
+4. **Detecção de Anomalias**: Identificação de padrões incomuns nos dados.
+
+### Configuração da API Claude
+
+Para usar a API Claude:
+
+1. Obtenha uma chave de API em [https://console.anthropic.com/](https://console.anthropic.com/)
+2. Configure a chave em um arquivo `.env` na raiz do projeto:
+   ```
+   CLAUDE_API_KEY=sua_chave_api_aqui
+   ```
+3. Instale as dependências adicionais:
+   ```bash
+   pip install anthropic python-dotenv
+   ```
+
+### Usar a API na Análise
+
+A funcionalidade Claude está disponível no módulo `claude_integration.py`:
+
+```python
+from src.claude_integration import get_coverage_insights, analyze_temporal_trends
+
+# Obter insights de cobertura
+insights = get_coverage_insights(gdf_rbs)
+
+# Analisar tendências temporais
+trends_analysis = analyze_temporal_trends(gdf_rbs)
+```
+
+## Módulos
+
+- **data_processing.py**: Carregamento e pré-processamento de dados
+- **analysis.py**: Análise estatística básica
+- **visualization.py**: Funções básicas de visualização
+- **graph_analysis.py**: Análise de rede das estações ERB
+- **coverage_models.py**: Estimativa de área de cobertura
+- **tech_frequency_analysis.py**: Análise de tecnologia e frequência
+- **advanced_temporal_analysis.py**: Análise de padrões temporais
+- **correlation_analysis.py**: Análise de correlação de variáveis
+- **spatial_analysis.py**: Análise de padrões espaciais
+- **integration_analysis.py**: Integração de análises temporais e tecnológicas
+- **prediction_module.py**: Previsão de tendências futuras
+- **dashboard_interactive.py**: Dashboard web interativo
+- **report_generator.py**: Geração de relatórios automatizados
+- **unit_tests.py**: Testes unitários para validação
+- **main.py**: Ponto de entrada principal com CLI
+- **claude_integration.py**: Integração com a API Claude (opcional)
+
+## Licença
+
+Este projeto está licenciado sob a Licença MIT - veja o arquivo LICENSE para detalhes.
+
+## Agradecimentos
+
+- Provedores de dados de telecomunicações brasileiros
+- Comunidades de código aberto de geoespacial e ciência de dados
+- Anthropic por fornecer acesso à API Claude para processamento de linguagem natural

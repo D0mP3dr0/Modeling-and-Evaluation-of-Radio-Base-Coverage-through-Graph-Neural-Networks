@@ -1,21 +1,50 @@
-pandas
-numpy
-matplotlib
-seaborn
-geopandas
+# Dependências básicas de data science
+pandas>=1.3.0
+numpy>=1.20.0
+scipy>=1.7.0
+scikit-learn>=1.0.0
+statsmodels>=0.13.0
+
+# Visualização
+matplotlib>=3.4.0
+seaborn>=0.11.0
+plotly>=5.3.0
+dash>=2.0.0
+folium>=0.12.0
+contextily>=1.0.0
+Pillow>=8.0.0
+
+# Geoespacial
+geopandas>=0.10.0
 fiona
-folium
+shapely>=1.7.0
+pyproj>=3.0.0
 h3
-contextily
-# Basemap can be complex to install, consider alternatives such as cartopy or using folium/geopandas directly
-# basemap 
-scikit-learn
-plotly
-# PyTorch and PyG dependencies (check compatible versions)
-torch
-torchvision
-torch-geometric
-torch-scatter
-torch-sparse
-torch-cluster
-torch-spline-conv
+geovoronoi>=0.3.0
+
+# Análise de rede e grafos
+networkx>=2.6.0
+
+# PyTorch e PyG (opcional, comentado por padrão devido à complexidade de instalação)
+# torch
+# torchvision
+# torch-geometric
+# torch-scatter
+# torch-sparse
+# torch-cluster
+# torch-spline-conv
+
+# Previsão de séries temporais
+prophet>=1.1.0
+pmdarima>=1.8.0
+
+# Geração de relatórios
+fpdf>=1.7.2
+openpyxl>=3.0.0
+xlsxwriter>=3.0.0
+jinja2>=3.0.0  # Para templates de relatórios
+pdfkit>=1.0.0  # Alternativa para geração de PDF
+
+# Testes e desenvolvimento
+pytest>=6.0.0
+pytest-cov>=2.0.0

@@ -19,6 +19,15 @@ from src.graph_analysis import (
     create_rbs_graph, calculate_graph_metrics, visualize_graph,
     create_voronoi_rbs_graph, convert_to_pyg
 )
+# Importando novos módulos avançados
+from src.tech_frequency_analysis import run_tech_frequency_analysis
+from src.advanced_temporal_analysis import run_temporal_analysis
+from src.correlation_analysis import run_correlation_analysis
+from src.spatial_analysis import run_spatial_analysis
+from src.integration_analysis import run_integration_analysis
+from src.prediction_module import run_prediction_analysis
+from src.dashboard_interactive import run_dashboard
+from src.report_generator import run_report_generation
 
 # --- Configuration --- 
 # Define paths here. Use relative paths for better portability.
@@ -326,6 +335,82 @@ def step_5_graph_analysis(gdf_rbs):
     
     print("\nAll graph analysis completed successfully.")
 
+# --- Step 6: Technology and Frequency Analysis --- 
+def step_6_tech_frequency_analysis(gdf_rbs):
+    if gdf_rbs is None or gdf_rbs.empty:
+        print("No data for technology and frequency analysis. Skipping step.")
+        return
+    
+    print("\n" + "="*80)
+    print("STEP 6: TECHNOLOGY AND FREQUENCY ANALYSIS")
+    print("="*80 + "\n")
+    
+    try:
+        run_tech_frequency_analysis(gdf_rbs, RESULTS_DIR)
+        print("\nTechnology and frequency analysis completed successfully.")
+    except Exception as e:
+        print(f"Error during technology and frequency analysis: {e}")
+
+# --- Step 7: Advanced Temporal Analysis --- 
+def step_7_temporal_analysis(gdf_rbs):
+    if gdf_rbs is None or gdf_rbs.empty:
+        print("No data for advanced temporal analysis. Skipping step.")
+        return
+    
+    print("\n" + "="*80)
+    print("STEP 7: ADVANCED TEMPORAL ANALYSIS")
+    print("="*80 + "\n")
+    
+    try:
+        run_temporal_analysis(gdf_rbs, RESULTS_DIR)
+        print("\nAdvanced temporal analysis completed successfully.")
+    except Exception as e:
+        print(f"Error during advanced temporal analysis: {e}")
+
+# --- Step 8: Advanced Integrations --- 
+def step_8_advanced_integrations(gdf_rbs):
+    if gdf_rbs is None or gdf_rbs.empty:
+        print("No data for advanced integrations. Skipping step.")
+        return
+    
+    print("\n" + "="*80)
+    print("STEP 8: ADVANCED INTEGRATIONS")
+    print("="*80 + "\n")
+    
+    # Correlation Analysis
+    print("\n8.1. Correlation Analysis")
+    try:
+        run_correlation_analysis(gdf_rbs, RESULTS_DIR)
+        print("Correlation analysis completed successfully.")
+    except Exception as e:
+        print(f"Error during correlation analysis: {e}")
+    
+    # Spatial Analysis
+    print("\n8.2. Spatial Analysis")
+    try:
+        run_spatial_analysis(gdf_rbs, RESULTS_DIR)
+        print("Spatial analysis completed successfully.")
+    except Exception as e:
+        print(f"Error during spatial analysis: {e}")
+    
+    # Integration Analysis
+    print("\n8.3. Integration Analysis")
+    try:
+        run_integration_analysis(gdf_rbs, RESULTS_DIR)
+        print("Integration analysis completed successfully.")
+    except Exception as e:
+        print(f"Error during integration analysis: {e}")
+    
+    # Prediction Analysis
+    print("\n8.4. Prediction Analysis")
+    try:
+        run_prediction_analysis(gdf_rbs, RESULTS_DIR)
+        print("Prediction analysis completed successfully.")
+    except Exception as e:
+        print(f"Error during prediction analysis: {e}")
+    
+    print("\nAll advanced integration analyses completed.")
+
 # --- Função Principal --- 
 def main():
     print("="*80)
@@ -348,10 +433,26 @@ def main():
     # Step 5: Graph analysis
     step_5_graph_analysis(gdf_rbs)
     
+    # Step 6: Technology and Frequency Analysis
+    step_6_tech_frequency_analysis(gdf_rbs)
+    
+    # Step 7: Advanced Temporal Analysis
+    step_7_temporal_analysis(gdf_rbs)
+    
+    # Step 8: Advanced Integrations (Correlation, Spatial, Integration, Prediction)
+    step_8_advanced_integrations(gdf_rbs)
+    
+    # Dashboard (commented out because it blocks execution until closed)
+    # try:
+    #     run_dashboard(gdf_rbs)
+    # except Exception as e:
+    #     print(f"Error starting dashboard: {e}")
+    
     print("\n" + "="*80)
     print("ANALYSIS COMPLETED SUCCESSFULLY")
     print("="*80)
     print(f"\nResults saved in the '{RESULTS_DIR}' directory.")
+    print("\nTo run the interactive dashboard, use: python -m src.dashboard_interactive")
 
 if __name__ == "__main__":
     main()
