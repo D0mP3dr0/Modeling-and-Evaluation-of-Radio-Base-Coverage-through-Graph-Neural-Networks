@@ -216,4 +216,17 @@ tmp/
 
 # Exceções para arquivos de exemplo
 !data/example_data.csv
-!data/example_data.geojson 
+!data/example_data.geojson
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Windows specific files
+Desktop.ini
+
+# Keep examples and sample files
+!examples/*.png
+!examples/*.html
+!examples/*.geojson
+!examples/sample_data.csv 

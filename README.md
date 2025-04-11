@@ -2,6 +2,27 @@
 
 Uma ferramenta completa para análise de dados de estações rádio base, incluindo distribuição espacial, tendências tecnológicas, padrões temporais e estimativas de cobertura.
 
+## Sobre o Projeto
+
+Esta ferramenta foi desenvolvida para auxiliar na análise de dados de Estações Rádio Base (ERBs), permitindo:
+
+1. **Análise espacial** de distribuição de ERBs
+2. **Análise de cobertura** baseada em modelos de propagação
+3. **Análise de tecnologias e frequências** utilizadas
+4. **Análise temporal** de implantação de ERBs
+5. **Análise avançada de grafos** da rede de ERBs
+6. **Documentação educacional** para entender o sistema
+
+## Novidades (Versão 1.1.0)
+
+- **Estrutura de Código Melhorada**: Reorganização do código para melhor manutenibilidade
+- **Sistema de Logging**: Registro detalhado de operações para facilitar diagnósticos
+- **Configuração Centralizada**: Parâmetros configuráveis em um único arquivo
+- **Tratamento de Erros Robusto**: Mensagens de erro informativas e recuperação de falhas
+- **Validação de Dados**: Verificação de integridade dos dados de entrada
+- **Documentação Aprimorada**: Docstrings e comentários explicativos em todo o código
+- **Módulo Educacional**: Documentação visual do fluxo de trabalho e análises
+
 ## Características
 
 - **Análise Básica**: Resumo estatístico dos dados de ERBs.
@@ -16,9 +37,37 @@ Uma ferramenta completa para análise de dados de estações rádio base, inclui
 - **Análise Preditiva**: Previsão de tendências futuras de implantação usando modelos de séries temporais.
 - **Dashboard Interativo**: Dashboard de visualização interativa baseado na web.
 - **Relatórios Automatizados**: Gera relatórios PDF e Excel abrangentes.
-- **Integração com IA**: Suporte opcional para integração com API Claude da Anthropic para análises avançadas.
+- **Documentação Educacional**: Fornece explicações visuais e interativas sobre as análises realizadas.
+
+## Estrutura do Projeto
+
+```
+├── data/                    # Diretório para dados de entrada/saída
+├── logs/                    # Registros de execução
+├── results/                 # Resultados das análises
+├── src/                     # Código-fonte do projeto
+│   ├── __init__.py          # Inicialização do pacote
+│   ├── config.py            # Configurações centralizadas
+│   ├── data_processing.py   # Processamento de dados
+│   ├── analysis.py          # Análise estatística básica
+│   ├── visualization.py     # Visualizações básicas
+│   ├── graph_analysis.py    # Análise de grafos
+│   ├── coverage_models.py   # Modelagem de cobertura
+│   ├── advanced_*.py        # Módulos de análise avançada
+│   └── unit_tests.py        # Testes unitários
+├── rbs_analysis.py          # Script principal
+└── requirements.txt         # Dependências do projeto
+```
 
 ## Instalação
+
+### Requisitos
+
+- Python 3.8+
+- pip (gerenciador de pacotes Python)
+- Dependências listadas em `requirements.txt`
+
+### Passos para Instalação
 
 Clone o repositório e instale as dependências necessárias:
 
@@ -28,155 +77,113 @@ cd analise-erb
 pip install -r requirements.txt
 ```
 
-Algumas dependências adicionais podem ser necessárias para análises específicas:
-- Para previsão com Prophet: `pip install prophet`
-- Para diagramas de Voronoi: `pip install geovoronoi`
+#### Dependências Opcionais
+
+Algumas funcionalidades avançadas requerem pacotes adicionais, que estão incluídos no `requirements.txt` mas podem ser instalados separadamente:
+
+- **Visualização 3D**: `pip install plotly dash`
+- **Análise de GNN**: `pip install torch torch-geometric`
+- **Geração de Fluxogramas**: `pip install graphviz`
 
 ## Uso
 
-### Interface de Linha de Comando
+### Linha de Comando
 
-A ferramenta pode ser executada a partir da linha de comando com várias opções:
+Use o script `rbs_analysis.py` como ponto de entrada principal:
 
 ```bash
-python src/main.py --input <arquivo_entrada> --output <diretorio_saida> [opções]
+python rbs_analysis.py --input <arquivo_entrada> --output <diretorio_saida> [opções]
 ```
 
-Opções:
-- `--input`, `-i`: Caminho para o arquivo de dados de entrada (CSV ou GeoJSON) [obrigatório]
-- `--output`, `-o`: Caminho para o diretório de saída (padrão: 'results')
-- `--all`, `-a`: Executa todas as análises disponíveis
-- `--basic`, `-b`: Executa análise básica
-- `--visualization`, `-v`: Cria visualizações
-- `--graph`, `-g`: Executa análise de grafos
-- `--coverage`, `-c`: Estima cobertura
-- `--tech-frequency`, `-tf`: Executa análise de tecnologia e frequência
-- `--temporal`, `-t`: Executa análise temporal avançada
-- `--correlation`, `-cr`: Executa análise de correlação
-- `--spatial`, `-s`: Executa análise espacial
-- `--integration`, `-int`: Executa análise integrada
-- `--prediction`, `-p`: Executa análise preditiva
-- `--dashboard`, `-d`: Executa dashboard interativo
-- `--report`, `-r`: Gera relatório abrangente
-- `--test`: Executa testes unitários
-- `--debug`: Ativa o modo de depuração
-
-### Exemplo
+#### Exemplos
 
 ```bash
 # Executa todas as análises
-python src/main.py --input data/erb_data.csv --output results --all
+python rbs_analysis.py --input data/erb_data.csv --all
 
-# Gera um relatório
-python src/main.py --input data/erb_data.csv --output results --report
+# Análise básica e visualização
+python rbs_analysis.py --input data/erb_data.csv --basic --visualization
 
-# Executa o dashboard interativo
-python src/main.py --input data/erb_data.csv --dashboard
+# Gera documentação educacional
+python rbs_analysis.py --input data/erb_data.csv --educational-docs
+
+# Executa análise avançada de grafos com campo de data específico
+python rbs_analysis.py --input data/erb_data.csv --advanced-graph --time-field "data_instalacao"
 ```
 
-### API Python
+#### Opções Disponíveis
 
-A ferramenta também pode ser usada como uma biblioteca Python:
+Execute `python rbs_analysis.py --help` para ver todas as opções disponíveis.
+
+### Como Importar como Biblioteca
+
+O projeto também pode ser usado como uma biblioteca Python:
 
 ```python
-import geopandas as gpd
-from src.data_processing import load_and_process_data
-from src.tech_frequency_analysis import run_tech_frequency_analysis
-from src.report_generator import run_report_generation
+from src import load_and_process_data, run_basic_analysis
+from src.visualization import create_visualizations
 
 # Carrega dados
 gdf_rbs = load_and_process_data('data/erb_data.csv')
 
-# Executa análise de tecnologia e frequência
-run_tech_frequency_analysis(gdf_rbs, 'results/tech_analysis')
-
-# Gera relatório
-run_report_generation(gdf_rbs, 'results/reports')
+# Executa análise básica
+run_basic_analysis(gdf_rbs, 'results/basic_analysis')
 ```
 
 ## Formato dos Dados de Entrada
 
-A ferramenta aceita dados em formato CSV ou GeoJSON. As seguintes colunas são usadas por várias análises:
+A ferramenta aceita dados em formato CSV ou GeoJSON. As seguintes colunas são essenciais:
 
 ### Colunas Obrigatórias
-- Latitude/Longitude ou campo geometry (para GeoJSON)
-- Operator: Nome da operadora de rede móvel
-- Tecnologia: Tecnologia (2G, 3G, 4G, 5G)
-- FreqTxMHz: Frequência de transmissão em MHz
-- PotenciaTransmissorWatts: Potência do transmissor em watts
+- `Latitude`/`Longitude` ou campo `geometry` (para GeoJSON)
 
-### Colunas Opcionais (usadas se disponíveis)
-- AlturaAntena: Altura da antena em metros
-- installation_date ou data_licenciamento: Data de instalação ou licenciamento
-- EIRP_dBm: Potência Isotrópica Radiada Efetiva
-- FrequencyBand: Categoria da banda de frequência
+### Colunas Recomendadas
+- `Operator`: Nome da operadora de rede móvel
+- `Tecnologia`: Tecnologia (2G, 3G, 4G, 5G)
+- `FreqTxMHz`: Frequência de transmissão em MHz
+- `PotenciaTransmissorWatts`: Potência do transmissor em watts
+- `installation_date`: Data de instalação (para análises temporais)
 
-Se algumas colunas estiverem ausentes, a ferramenta tentará estimar ou gerar dados fictícios quando possível.
+Se algumas colunas estiverem ausentes, a ferramenta tentará usar valores padrão ou gerar dados sintéticos quando apropriado.
 
-## Saída
+## Configuração
 
-A ferramenta gera várias saídas dependendo das análises executadas:
-- Visualizações estáticas (arquivos PNG)
-- Visualizações interativas (arquivos HTML)
-- Arquivos de dados (CSV, GeoJSON)
-- Relatórios abrangentes (PDF, Excel)
-- Dashboard interativo (baseado na web)
+O arquivo `src/config.py` centraliza todas as configurações do projeto. Você pode modificar:
 
-## Integração com API Claude da Anthropic
+- **Diretórios de Trabalho**: Locais para dados, resultados e logs
+- **Parâmetros Padrão**: Valores default para dados ausentes
+- **Configurações de Visualização**: Tamanhos, cores e estilos
+- **Parâmetros de Análise**: Limiares e fatores para os modelos
 
-Esta ferramenta suporta integração opcional com a API Claude da Anthropic para:
+## Logs e Depuração
 
-1. **Análise de Texto Avançada**: Extração de insights de descrições textuais e comentários.
-2. **Interpretação de Resultados**: Geração de resumos e interpretações dos gráficos e análises.
-3. **Recomendações de Otimização**: Sugestões para melhorar a cobertura da rede.
-4. **Detecção de Anomalias**: Identificação de padrões incomuns nos dados.
+Os logs são armazenados no diretório `logs/`. Para habilitar o modo de depuração:
 
-### Configuração da API Claude
-
-Para usar a API Claude:
-
-1. Obtenha uma chave de API em [https://console.anthropic.com/](https://console.anthropic.com/)
-2. Configure a chave em um arquivo `.env` na raiz do projeto:
-   ```
-   CLAUDE_API_KEY=sua_chave_api_aqui
-   ```
-3. Instale as dependências adicionais:
-   ```bash
-   pip install anthropic python-dotenv
-   ```
-
-### Usar a API na Análise
-
-A funcionalidade Claude está disponível no módulo `claude_integration.py`:
-
-```python
-from src.claude_integration import get_coverage_insights, analyze_temporal_trends
-
-# Obter insights de cobertura
-insights = get_coverage_insights(gdf_rbs)
-
-# Analisar tendências temporais
-trends_analysis = analyze_temporal_trends(gdf_rbs)
+```bash
+python rbs_analysis.py --input data/erb_data.csv --debug
 ```
 
-## Módulos
+## Desenvolvimento
 
-- **data_processing.py**: Carregamento e pré-processamento de dados
-- **analysis.py**: Análise estatística básica
-- **visualization.py**: Funções básicas de visualização
-- **graph_analysis.py**: Análise de rede das estações ERB
-- **coverage_models.py**: Estimativa de área de cobertura
-- **tech_frequency_analysis.py**: Análise de tecnologia e frequência
-- **advanced_temporal_analysis.py**: Análise de padrões temporais
-- **correlation_analysis.py**: Análise de correlação de variáveis
-- **spatial_analysis.py**: Análise de padrões espaciais
-- **integration_analysis.py**: Integração de análises temporais e tecnológicas
-- **prediction_module.py**: Previsão de tendências futuras
-- **dashboard_interactive.py**: Dashboard web interativo
-- **report_generator.py**: Geração de relatórios automatizados
-- **unit_tests.py**: Testes unitários para validação
-- **main.py**: Ponto de entrada principal com CLI
-- **claude_integration.py**: Integração com a API Claude (opcional)
+### Requisitos para Desenvolvimento
+
+- Python 3.8+
+- pytest (para testes unitários)
+- flake8 e pylint (para verificação de estilo)
+
+### Executando Testes
+
+```bash
+python -m pytest src/unit_tests.py
+```
+
+### Contribuição
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
+4. Push para a branch (`git push origin feature/nova-funcionalidade`)
+5. Abra um Pull Request
 
 ## Licença
 
@@ -186,4 +193,3 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo LICENSE para d
 
 - Provedores de dados de telecomunicações brasileiros
 - Comunidades de código aberto de geoespacial e ciência de dados
-- Anthropic por fornecer acesso à API Claude para processamento de linguagem natural
