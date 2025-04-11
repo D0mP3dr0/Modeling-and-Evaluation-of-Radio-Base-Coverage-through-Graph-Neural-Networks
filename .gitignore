@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.env
+.venv
+venv/
+ENV/
+data/csv_licenciamento_bruto.csv
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# VS Code
+.vscode/
+.idea/
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Dados e resultados (arquivos grandes)
+/data/*.csv
+/data/*.zip
+/data/*.7z
+/data/*.rar
+/data/*.gz
+/data/*.bz2
+/results/*.html
+/results/*.png
+/results/*.jpg
+/results/*.pdf
+
+# Exceções - versionamos apenas os READMEs e arquivos de exemplo
+!/data/README.md
+!/results/README.md
+!/data/*.example.csv 
